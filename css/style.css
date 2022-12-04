@@ -8,3 +8,54 @@
     text-align: center;
 
   }
+ 
+
+  .job{
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 64px;
+    right: 0;
+    overflow-x: hidden;
+    transition: all 0.4s;
+    padding-top: 10px;
+    padding-bottom: 60px;
+    background-color: #fff;
+    border-radius: 12px;
+    border: none;
+    border-top:1px solid rgba(230,230,230,1)
+  }
+
+  .slide{display: none;}
+  
+.defaultSlide{
+  display: block;
+}
+
+.btn7{
+  border-radius: 15px;
+  padding: 10px 15px;
+  border: 1px solid  #f3eaf3;
+  color: rgb(24, 23, 23);
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn7:hover{
+  color: rgb(24, 23, 23);
+  background-color:#dfc9df ;
+}
+.btn7:active{
+  background-color:#cdb6cd ;
+}
+
+.font9{
+  font-weight: 400;
+  color: 	#9c0a0a;
+  font-size: 36px;
+  letter-spacing: 1px;
+  margin-top: 50px;
+
+}

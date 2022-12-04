@@ -17,39 +17,7 @@ function lınkedınFunction(){
 }
 
 
-// // let index = 1;
-// designSlide(index);
 
-// function design(n){
-//     designSlide(index += n)
-// }
-
-
-// function designSlide(n){
-//     let i;
-//     let showSlide = document.getElementsByClassName("slide");
-
-//     if (n > showSlide.length){
-//         index = 1
-//     }
-
-//     if(n < 1){
-//         index = showSlide.length;
-//     }
-
-
-
-    
-
-// for(i=0; i<showSlide.length; i++){
-//     showSlide[i].style.display="none";
-
-// }
-
-// showSlide[index-1].style.display = "block";
-
-
-// }
 
 
 
@@ -64,9 +32,11 @@ next.addEventListener("click", function(){
     if(index < displaySlide.length){
         index++;
        
-       
+        prev.removeAttribute("disabled","")
     }else{
         index=displaySlide.length
+        next.setAttribute("disabled","")
+       
       
     }
     for(i=0; i<displaySlide.length; i++){
@@ -76,20 +46,6 @@ next.addEventListener("click", function(){
     }
     
     displaySlide[index-1].style.display = "block";
-
-
-// next.classList.add("disabled")
-   
-    // if(next.click){
-    //     prev.classList.add("disabled")
-    // }
-  
-
-  
-   
-
-
-   
     
     
 })
@@ -97,11 +53,13 @@ next.addEventListener("click", function(){
 prev.addEventListener("click", function(){
     if(index!=0){
         index--;
+        next.removeAttribute("disabled","")
+        
        
    
     }else{
         index=0
-       
+        prev.setAttribute("disabled","")
         
     }
     for(i=0; i<displaySlide.length; i++){
@@ -114,9 +72,8 @@ prev.addEventListener("click", function(){
     
     displaySlide[index].style.display = "block";
 
-    // if(prev.click){
-    //     next.classList.add("disabled") 
-    // }
+
+
   
    
 })
