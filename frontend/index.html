@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LinkedIn Clone - Login</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <style>
     * {
       margin: 0;
@@ -107,10 +108,6 @@
       text-decoration: underline;
     }
   </style>
-  <link rel="stylesheet" href="components/Register/Register.css">
-  <script defer src="components/Register/Register.js"></script>
-  <link rel="stylesheet" href="components/Dashboard/Dashboard.css">
-  <script defer src="components/Dashboard/Dashboard.js"></script>
 </head>
 
 <body>
@@ -145,7 +142,7 @@
       const errorMessage = document.getElementById('errorMessage');
       
       try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -161,13 +158,14 @@
           localStorage.setItem('refresh_token', data.refresh_token);
           localStorage.setItem('user', JSON.stringify(data.user));
           
-          // Redirect to home page
-          window.location.href = '/home.html';
+          // Redirect to dashboard
+          window.location.href = '/dashboard';
         } else {
-          errorMessage.textContent = data.message;
+          errorMessage.textContent = data.message || 'Invalid email or password';
           errorMessage.style.display = 'block';
         }
       } catch (error) {
+        console.error('Login error:', error);
         errorMessage.textContent = 'An error occurred. Please try again.';
         errorMessage.style.display = 'block';
       }

@@ -12,6 +12,8 @@ body {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  min-height: 100vh;
+  background-color: #f3f2ef;
 }
 
 .card {
@@ -20,6 +22,8 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   margin-bottom: 1.5rem;
   padding: 1rem;
+  border: none;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.2);
 }
 
 .card-header {
@@ -29,6 +33,8 @@ body {
   border-bottom: 1px solid #e6e6e6;
   border-radius: 8px 8px 0 0;
   padding: 0.75rem 1rem;
+  background-color: white;
+  border-bottom: 1px solid rgba(0,0,0,.15);
 }
 
 .btn-primary {
@@ -40,15 +46,18 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  border-color: #0a66c2;
 }
 
 .btn-primary:hover {
   background-color: #004182;
+  border-color: #004182;
 }
 
 .navbar {
   border-bottom: 1px solid #e6e6e6;
   margin-bottom: 2rem;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.2);
 }
 
 img.rounded-circle {
@@ -57,4 +66,36 @@ img.rounded-circle {
 
 .text-muted {
   color: #666 !important;
+}
+
+.navbar-brand i {
+  font-size: 2.5rem;
+}
+
+.nav-link i {
+  font-size: 1.5rem;
+}
+
+.yazı {
+  font-size: 0.8rem;
+}
+
+.btn-outline-primary {
+  border-color: #0a66c2;
+  color: #0a66c2;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0a66c2;
+  color: white;
+}
+
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.2);
+}
+
+.form-control:focus {
+  border-color: #0a66c2;
+  box-shadow: 0 0 0 1px #0a66c2;
 } 
