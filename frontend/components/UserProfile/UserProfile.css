@@ -1,0 +1,131 @@
+.profile-container {
+    background: #f3f2ef;
+    min-height: 100vh;
+    padding-bottom: 2rem;
+}
+
+.cover-photo {
+    background: linear-gradient(90deg, #0a66c2 60%, #004182 100%);
+    height: 180px;
+    position: relative;
+}
+
+.profile-picture {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 120px;
+    z-index: 2;
+    width: 150px;
+    height: 150px;
+}
+
+.profile-picture img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    object-fit: cover;
+    background: #fff;
+}
+
+.edit-photo-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: #0a66c2;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.profile-info {
+    margin-top: 90px;
+    margin-bottom: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    padding: 2rem 0 1rem 0;
+}
+
+.profile-info h1 {
+    margin-bottom: 0.2rem;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.profile-info .title {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.profile-info .location {
+    color: #888;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.connection-info {
+    margin-top: 0.5rem;
+    font-size: 1rem;
+}
+
+.connection-info button {
+    margin-left: 1rem;
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+    background: #fff;
+}
+
+.card-body h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+#postsFeed .card {
+    margin-bottom: 1rem;
+}
+
+.post-input {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.post-input input {
+    flex: 1;
+    border-radius: 24px;
+    border: 1px solid #ddd;
+    padding: 0.5rem 1rem;
+}
+
+.post-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-link {
+    color: #0a66c2;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+    color: #004182;
+} 
