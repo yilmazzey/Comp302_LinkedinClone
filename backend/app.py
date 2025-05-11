@@ -1,8 +1,11 @@
 from flask import Flask, jsonify, send_from_directory, redirect
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager  # Add this import
 from config import Config
 from models.user import db
+from models.post import Post, Comment, Like
 from routes.auth import auth_bp
+from routes.posts import posts_bp
 import os
 
 def create_app():
@@ -11,6 +14,7 @@ def create_app():
     
     # Initialize extensions
     db.init_app(app)
+    jwt = JWTManager(app)  
     CORS(app, resources={
         r"/*": {
             "origins": ["http://localhost:5000", "http://127.0.0.1:5000"],
@@ -21,6 +25,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(posts_bp, url_prefix='/api')
     
     # Create database tables
     with app.app_context():

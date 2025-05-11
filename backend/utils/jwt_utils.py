@@ -8,7 +8,7 @@ def generate_tokens(user_id):
     """Generate access and refresh tokens for a user"""
     access_token = jwt.encode(
         {
-            'user_id': user_id,
+            'sub': user_id,
             'exp': datetime.utcnow() + current_app.config['JWT_ACCESS_TOKEN_EXPIRES']
         },
         current_app.config['JWT_SECRET_KEY'],
@@ -17,7 +17,7 @@ def generate_tokens(user_id):
     
     refresh_token = jwt.encode(
         {
-            'user_id': user_id,
+            'sub': user_id,
             'exp': datetime.utcnow() + current_app.config['JWT_REFRESH_TOKEN_EXPIRES']
         },
         current_app.config['JWT_SECRET_KEY'],
