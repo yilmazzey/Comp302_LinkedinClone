@@ -1,20 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
     const errorMessage = document.getElementById('errorMessage');
 
-    loginForm.addEventListener('submit', async (e) => {
+    registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        const firstName = document.getElementById('firstName').value;
+        const lastName = document.getElementById('lastName').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ firstName, lastName, email, password }),
             });
 
             const data = await response.json();
@@ -25,11 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Redirect to home page
                 window.location.href = '/';
             } else {
-                errorMessage.textContent = data.message || 'Login failed. Please try again.';
+                errorMessage.textContent = data.message || 'Registration failed. Please try again.';
             }
         } catch (error) {
             errorMessage.textContent = 'An error occurred. Please try again later.';
-            console.error('Login error:', error);
+            console.error('Registration error:', error);
         }
     });
 }); 
