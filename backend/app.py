@@ -37,11 +37,15 @@ def create_app():
     
     @app.route('/register')
     def register():
-        return send_from_directory(app.static_folder, 'register.html')
+        return send_from_directory(app.static_folder, 'Register.html')
     
     @app.route('/dashboard')
     def dashboard():
         return send_from_directory(app.static_folder, 'components/Dashboard/Dashboard.html')
+    
+    @app.route('/profile')
+    def profile():
+        return send_from_directory(app.static_folder, 'components/Profile/Profile.html')
     
     # Catch-all route for static files
     @app.route('/<path:path>')
