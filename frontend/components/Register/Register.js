@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        errorMessage.textContent = ''; // Clear any previous errors
         
         const first_name = document.getElementById('firstName').value;
         const last_name = document.getElementById('lastName').value;
@@ -26,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.access_token) localStorage.setItem('access_token', data.access_token);
                 if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
                 if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-                // Redirect to profile management
+                
+                // Redirect to profile management (same as login-to-dashboard)
                 window.location.href = '/components/Profile/Profile.html';
             } else {
                 errorMessage.textContent = data.message || 'Registration failed. Please try again.';
