@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
                 
                 // Redirect to profile management (same as login-to-dashboard)
-                window.location.href = '/components/Profile/Profile.html';
+                window.location.href = '/profile';
             } else {
                 errorMessage.textContent = data.message || 'Registration failed. Please try again.';
             }
