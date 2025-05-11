@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('/api/profile/update', {
+            const response = await fetch('http://127.0.0.1:5000/api/auth/profile/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -36,11 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 // Update local storage with new user data
-                localStorage.setItem('user', JSON.stringify({
-                    ...user,
-                    ...formData
-                }));
+                localStorage.setItem('user', JSON.stringify(data.user));
                 alert('Profile updated successfully!');
+                // Redirect back to profile page
+                window.location.href = '/components/Profile/Profile.html';
             } else {
                 alert(data.message || 'Failed to update profile');
             }
