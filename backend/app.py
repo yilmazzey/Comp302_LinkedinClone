@@ -1,32 +1,36 @@
 from flask import Flask, jsonify, send_from_directory
-from models import db
+from flask_cors import CORS
+from config import Config
+from models.user import db
+from routes.auth import auth_bp
 import os
 
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
-
-# SQLite configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///linkedin_clone.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db.init_app(app)
-
-@app.cli.command('create-db')
-def create_db():
-    """Create database tables."""
-    db.create_all()
-    print('Database tables created.')
-
-@app.route('/')
-def serve_index():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/')
-def index():
-    return 'Backend is running!'
-
-@app.route('/api/health')
-def health_check():
-    return jsonify({'status': 'ok'})
+def create_app():
+    app = Flask(__name__, static_folder='../frontend', static_url_path='')
+    app.config.from_object(Config)
+    
+    # Initialize extensions
+    db.init_app(app)
+    CORS(app)
+    
+    # Register blueprints
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+    
+    # Serve static files
+    @app.route('/')
+    def index():
+        return send_from_directory(app.static_folder, 'index.html')
+    
+    @app.route('/register')
+    def register():
+        return send_from_directory(app.static_folder, 'register.html')
+    
+    return app
 
 if __name__ == '__main__':
+    app = create_app()
     app.run(debug=True)
