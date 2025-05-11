@@ -3,6 +3,7 @@ from models.user import User, db
 from utils.jwt_utils import generate_tokens
 import jwt
 from flask import current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -92,4 +93,39 @@ def refresh():
     except jwt.ExpiredSignatureError:
         return jsonify({'message': 'Refresh token has expired'}), 401
     except jwt.InvalidTokenError:
-        return jsonify({'message': 'Invalid refresh token'}), 401 
+        return jsonify({'message': 'Invalid refresh token'}), 401
+
+@auth_bp.route('/profile/update', methods=['POST'])
+@jwt_required()
+def update_profile():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+            
+        data = request.get_json()
+        
+        # Update user fields
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'email' in data:
+            # Check if email is already taken by another user
+            existing_user = User.query.filter(User.email == data['email'], User.id != user_id).first()
+            if existing_user:
+                return jsonify({'message': 'Email already in use'}), 400
+            user.email = data['email']
+            
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Profile updated successfully',
+            'user': user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Error updating profile', 'error': str(e)}), 500 
