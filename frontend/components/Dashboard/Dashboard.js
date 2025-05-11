@@ -1,24 +1,17 @@
-export function renderDashboard(container, onLogout) {
-  loadComponentCSS('components/Dashboard/Dashboard.css');
-  fetch('components/Dashboard/Dashboard.html')
-    .then(response => response.text())
-    .then(html => {
-      container.innerHTML = html;
-      const logoutBtn = container.querySelector('#closed');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          onLogout();
-        });
-      }
-    });
-}
+import { initProtectedPage, getCurrentUser } from '../../src/utils/auth';
 
-function loadComponentCSS(href) {
-  if (![...document.styleSheets].some(s => s.href && s.href.includes(href))) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-  }
-} 
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize protected page functionality
+    initProtectedPage();
+
+    // Get and display user information
+    const user = getCurrentUser();
+    if (user) {
+        const userInfoElement = document.getElementById('userInfo');
+        if (userInfoElement) {
+            userInfoElement.textContent = `Welcome, ${user.first_name || user.email}`;
+        }
+    }
+
+    // Add any dashboard-specific functionality here
+}); 

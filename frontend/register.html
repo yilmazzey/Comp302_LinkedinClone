@@ -149,7 +149,7 @@
             const errorMessage = document.getElementById('errorMessage');
             
             try {
-                const response = await fetch('http://localhost:5000/api/auth/register', {
+                const response = await fetch('http://127.0.0.1:5000/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -170,13 +170,14 @@
                     localStorage.setItem('refresh_token', data.refresh_token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    // Redirect to home page
-                    window.location.href = '/home.html';
+                    // Redirect to dashboard
+                    window.location.href = '/dashboard';
                 } else {
-                    errorMessage.textContent = data.message;
+                    errorMessage.textContent = data.message || 'Registration failed. Please try again.';
                     errorMessage.style.display = 'block';
                 }
             } catch (error) {
+                console.error('Registration error:', error);
                 errorMessage.textContent = 'An error occurred. Please try again.';
                 errorMessage.style.display = 'block';
             }
