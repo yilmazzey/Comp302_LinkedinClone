@@ -12,6 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
             userInfoElement.textContent = `Welcome, ${user.first_name || user.email}`;
         }
     }
+    const viewProfileButtons = document.querySelectorAll('button, a');
+    viewProfileButtons.forEach(button => {
+        if (button.textContent.trim() === 'View Profile') {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = '/userprofile';
+            });
+        }
+    });
 
     // Post form submission
     const postForm = document.getElementById('postForm');
