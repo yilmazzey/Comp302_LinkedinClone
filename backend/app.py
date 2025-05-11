@@ -47,6 +47,11 @@ def create_app():
     def profile():
         return send_from_directory(app.static_folder, 'components/Profile/Profile.html')
     
+    @app.route('/userprofile')
+    def user_profile():
+        return send_from_directory(app.static_folder ,'components/UserProfile/UserProfile.html')
+
+    
     # Catch-all route for static files
     @app.route('/<path:path>')
     def serve_static(path):
