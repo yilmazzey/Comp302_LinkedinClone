@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const firstName = document.getElementById('firstName').value;
-        const lastName = document.getElementById('lastName').value;
+        const first_name = document.getElementById('firstName').value;
+        const last_name = document.getElementById('lastName').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
@@ -16,16 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ firstName, lastName, email, password }),
+                body: JSON.stringify({ first_name, last_name, email, password }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                // Store the token in localStorage
-                localStorage.setItem('token', data.token);
-                // Redirect to home page
-                window.location.href = '/';
+                // Store tokens if provided
+                if (data.access_token) localStorage.setItem('access_token', data.access_token);
+                if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+                if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+                // Redirect to profile management
+                window.location.href = '/components/Profile/Profile.html';
             } else {
                 errorMessage.textContent = data.message || 'Registration failed. Please try again.';
             }
