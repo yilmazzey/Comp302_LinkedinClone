@@ -7,6 +7,7 @@ from models.post import Post, Comment, PostLike
 from routes.auth import auth_bp
 from routes.posts import posts_bp
 from routes.profile import profile_bp
+from routes.admin import admin_bp
 import os
 
 def create_app():
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(posts_bp, url_prefix='/api')
     app.register_blueprint(profile_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
     
     # Create database tables
     with app.app_context():
@@ -53,6 +55,10 @@ def create_app():
     @app.route('/profile')
     def profile():
         return send_from_directory(app.static_folder, 'components/Profile/Profile.html')
+    
+    @app.route('/admin')
+    def admin_dashboard():
+        return send_from_directory(app.static_folder, 'components/AdminDashboard/AdminDashboard.html')
     
     @app.route('/userprofile')
     def user_profile():
