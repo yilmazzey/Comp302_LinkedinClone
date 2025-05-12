@@ -66,17 +66,22 @@ document.addEventListener('DOMContentLoaded', () => {
     postsFeed.innerHTML = '';
     (user.posts || []).forEach(post => {
         const card = document.createElement('div');
-        card.className = "card";
+        card.className = "card mb-3";
         card.innerHTML = `
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
-                    <img src="${user.profile_photo}" class="rounded-circle me-2" style="width:40px; height:40px;">
+                    <img src="${user.profile_photo || 'https://via.placeholder.com/40'}" class="rounded-circle me-2" style="width:40px; height:40px;">
                     <div>
                         <strong>${user.first_name} ${user.last_name}</strong><br>
                         <small>${post.date}</small>
                     </div>
                 </div>
                 <p>${post.content}</p>
+                ${post.image_url ? `<img src="${post.image_url}" class="img-fluid rounded mb-2" alt="Post Image">` : ''}
+                <div>
+                    <button class="btn btn-outline-primary btn-sm me-2"><i class="fas fa-thumbs-up"></i> Like</button>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="fas fa-comment"></i> Comment</button>
+                </div>
             </div>
         `;
         postsFeed.appendChild(card);

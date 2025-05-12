@@ -51,6 +51,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 const data = await response.json();
+                
+                // Store the post in localStorage
+                const user = JSON.parse(localStorage.getItem('user')) || {};
+                const posts = user.posts || [];
+                posts.unshift({
+                    content: formData.get('content'),
+                    date: new Date().toISOString().split('T')[0],
+                    image_url: data.image_url || null
+                });
+                user.posts = posts;
+                localStorage.setItem('user', JSON.stringify(user));
+                
                 postForm.reset();
                 await fetchAndRenderPosts();
             } catch (err) {
