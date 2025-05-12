@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/posts', {
+                const response = await fetch('/api/posts', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -45,9 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Server response:', errorText);
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    console.error('Server response:', errorData);
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await fetchAndRenderPosts();
             } catch (err) {
                 console.error('Error sharing post:', err);
-                alert('Error sharing post. Please try again.');
+                alert(err.message || 'Error sharing post. Please try again.');
             }
         });
     }
@@ -75,13 +75,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and render posts
     async function fetchAndRenderPosts() {
         const postsFeed = document.getElementById('postsFeed');
-        postsFeed.innerHTML = '';
+        if (!postsFeed) return;
+        
+        postsFeed.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+        
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/posts');
+            const response = await fetch('/api/posts');
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Failed to fetch posts: ${response.status}`);
             }
+            
             const posts = await response.json();
+            postsFeed.innerHTML = '';
+            
+            if (posts.length === 0) {
+                postsFeed.innerHTML = '<div class="alert alert-info">No posts yet. Be the first to share!</div>';
+                return;
+            }
+            
             posts.forEach(post => {
                 const postCard = document.createElement('div');
                 postCard.className = 'card mb-3';
@@ -106,9 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (err) {
             console.error('Error fetching posts:', err);
-            postsFeed.innerHTML = '<div class="alert alert-danger">Failed to load posts.</div>';
+            postsFeed.innerHTML = `<div class="alert alert-danger">${err.message || 'Failed to load posts.'}</div>`;
         }
     }
 
+    // Initial fetch of posts
     fetchAndRenderPosts();
 }); 
