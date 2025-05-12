@@ -41,6 +41,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const backButton = document.getElementById('backToDashboardBtn');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            window.location.href = 'http://127.0.0.1:5000/components/Dashboard/Dashboard.html';
+    });
+}
+
+
     // Render experience
     const experienceList = document.getElementById('experienceList');
     experienceList.innerHTML = '';
