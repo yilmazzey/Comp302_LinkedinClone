@@ -1,5 +1,6 @@
 from datetime import datetime
 from models.user import db
+from models.user import User
 
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -12,12 +13,17 @@ class Post(db.Model):
     likes = db.relationship('Like', backref='post', lazy=True, cascade='all, delete-orphan')
 
     def to_dict(self):
+        author = User.query.get(self.author_id)
         return {
             'id': self.id,
             'content': self.content,
             'image_url': self.image_url,
             'created_at': self.created_at.isoformat(),
             'author_id': self.author_id,
+            'author_first_name': author.first_name if author else '',
+            'author_last_name': author.last_name if author else '',
+            'author_profile_photo': author.profile_photo if author else '',
+            'author_job_title': author.job_title if author else '',
             'comments': [comment.to_dict() for comment in self.comments],
             'likes': len(self.likes)
         }

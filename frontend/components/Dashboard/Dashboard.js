@@ -99,9 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 postCard.innerHTML = `
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
-                            <img src="https://via.placeholder.com/40" class="rounded-circle me-2" style="width:40px; height:40px;">
+                            <img src="${post.author_profile_photo || 'https://via.placeholder.com/40'}" class="rounded-circle me-2" style="width:40px; height:40px;">
                             <div>
-                                <strong>User ${post.author_id}</strong><br>
+                                <strong>${post.author_first_name || ''} ${post.author_last_name || ''}</strong><br>
                                 <small>${new Date(post.created_at).toLocaleString()}</small>
                             </div>
                         </div>

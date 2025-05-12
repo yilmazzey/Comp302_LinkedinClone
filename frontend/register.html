@@ -142,14 +142,24 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const firstName = document.getElementById('first_name').value;
-            const lastName = document.getElementById('last_name').value;
+            const first_name = document.getElementById('first_name').value.trim();
+            const last_name = document.getElementById('last_name').value.trim();
             const errorMessage = document.getElementById('errorMessage');
+            const submitButton = document.querySelector('.register-button');
             
+            if (!email || !password || !first_name || !last_name) {
+                errorMessage.textContent = 'All fields are required.';
+                errorMessage.style.display = 'block';
+                return;
+            }
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/auth/register', {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Registering...';
+                errorMessage.style.display = 'none';
+                
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -157,8 +167,8 @@
                     body: JSON.stringify({
                         email,
                         password,
-                        first_name: firstName,
-                        last_name: lastName
+                        first_name,
+                        last_name
                     })
                 });
                 
@@ -170,7 +180,7 @@
                     localStorage.setItem('refresh_token', data.refresh_token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    // Redirect to dashboard
+                    // Redirect to profile page for new users
                     window.location.href = '/profile';
                 } else {
                     errorMessage.textContent = data.message || 'Registration failed. Please try again.';
@@ -180,6 +190,9 @@
                 console.error('Registration error:', error);
                 errorMessage.textContent = 'An error occurred. Please try again.';
                 errorMessage.style.display = 'block';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Join LinkedIn';
             }
         });
     </script>

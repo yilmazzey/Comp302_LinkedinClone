@@ -12,6 +12,12 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
+    profile_photo = db.Column(db.String(256))
+    job_title = db.Column(db.String(100))
+    location = db.Column(db.String(100))
+    bio = db.Column(db.Text)
+    education = db.Column(db.Text)
+    experience = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -27,6 +33,12 @@ class User(db.Model):
             'email': self.email,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'profile_photo': self.profile_photo,
+            'job_title': self.job_title,
+            'location': self.location,
+            'bio': self.bio,
+            'education': self.education,
+            'experience': self.experience,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         } 

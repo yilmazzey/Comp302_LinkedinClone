@@ -4,6 +4,7 @@ from utils.jwt_utils import generate_tokens
 import jwt
 import logging
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import traceback
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -11,15 +12,18 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     try:
         data = request.get_json()
+        current_app.logger.info(f"Registration attempt for email: {data.get('email')}")
         
         # Validate required fields
         required_fields = ['email', 'password', 'first_name', 'last_name']
         for field in required_fields:
             if field not in data:
+                current_app.logger.warning(f"Missing required field: {field}")
                 return jsonify({'message': f'{field} is required'}), 400
         
         # Check if user already exists
         if User.query.filter_by(email=data['email']).first():
+            current_app.logger.warning(f"Email already registered: {data['email']}")
             return jsonify({'message': 'Email already registered'}), 400
         
         # Create new user
@@ -30,22 +34,26 @@ def register():
         )
         user.set_password(data['password'])
         
+        # Add user to database
         db.session.add(user)
         db.session.commit()
         
         # Generate tokens
         tokens = generate_tokens(user.id)
         
+        current_app.logger.info(f"User registered successfully: {user.email}")
         return jsonify({
             'message': 'User registered successfully',
             'user': user.to_dict(),
-            **tokens
+            'access_token': tokens['access_token'],
+            'refresh_token': tokens['refresh_token']
         }), 201
         
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Registration error: {str(e)}")
-        return jsonify({'message': 'Error creating user'}), 500
+        current_app.logger.error(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'message': 'Error creating user', 'error': str(e)}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
