@@ -2,6 +2,9 @@
     background: #f3f2ef;
     min-height: 100vh;
     padding-bottom: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 .cover-photo {
@@ -18,6 +21,10 @@
     z-index: 2;
     width: 150px;
     height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .profile-picture img {
@@ -52,24 +59,26 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     padding: 2rem 0 1rem 0;
+    text-align: center;
+    margin-top: 20px;
 }
 
 .profile-info h1 {
-    margin-bottom: 0.2rem;
-    font-size: 2rem;
-    font-weight: 700;
+    margin: 10px 0;
+    font-size: 24px;
+    font-weight: 600;
 }
 
 .profile-info .title {
     color: #666;
-    font-size: 1.1rem;
-    margin-bottom: 0.2rem;
+    font-size: 16px;
+    margin-bottom: 5px;
 }
 
 .profile-info .location {
-    color: #888;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
 }
 
 .connection-info {
@@ -128,4 +137,126 @@
 .btn-link:hover {
     text-decoration: underline;
     color: #004182;
+}
+
+/* Posts Section */
+#userPosts {
+    margin-top: 20px;
+}
+
+#userPosts .card {
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#userPosts .card-body {
+    padding: 15px;
+}
+
+#userPosts .post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#userPosts .post-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+#userPosts .post-content {
+    margin: 10px 0;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+#userPosts .post-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+#userPosts .post-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#userPosts .like-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid #007bff;
+    background: white;
+    color: #007bff;
+    transition: all 0.2s;
+}
+
+#userPosts .like-btn:hover {
+    background: #f8f9fa;
+}
+
+#userPosts .like-btn.active {
+    background: #007bff;
+    color: white;
+}
+
+#userPosts .like-btn i {
+    font-size: 14px;
+}
+
+/* Loading State */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    color: #007bff;
+}
+
+/* Error State */
+.alert {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 10px;
+    }
+
+    .profile-picture {
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-info h1 {
+        font-size: 20px;
+    }
+
+    .profile-info .title {
+        font-size: 14px;
+    }
+
+    .profile-info .location {
+        font-size: 12px;
+    }
 } 
