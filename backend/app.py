@@ -56,13 +56,13 @@ def create_app():
     def profile():
         return send_from_directory(app.static_folder, 'components/Profile/Profile.html')
     
-    @app.route('/userprofile')
-    def user_profile():
-        return send_from_directory(app.static_folder, 'components/UserProfile/UserProfile.html')
-
     @app.route('/admin')
     def admin_dashboard():
         return send_from_directory(app.static_folder, 'components/AdminDashboard/AdminDashboard.html')
+    
+    @app.route('/userprofile')
+    def user_profile():
+        return send_from_directory(app.static_folder ,'components/UserProfile/UserProfile.html')
 
     # Serve uploaded images from backend/static/uploads
     @app.route('/static/uploads/<filename>')
