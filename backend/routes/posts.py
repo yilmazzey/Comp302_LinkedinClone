@@ -28,7 +28,7 @@ def create_post():
 
         if image and allowed_file(image.filename):
             filename = secure_filename(image.filename)
-            upload_path = os.path.join(current_app.static_folder, 'uploads')
+            upload_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads'))
             os.makedirs(upload_path, exist_ok=True)
             image.save(os.path.join(upload_path, filename))
             image_url = f'/static/uploads/{filename}'

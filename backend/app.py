@@ -6,6 +6,7 @@ from models.user import db
 from models.post import Post, Comment, Like
 from routes.auth import auth_bp
 from routes.posts import posts_bp
+from routes.profile import profile_bp
 import os
 
 def create_app():
@@ -26,6 +27,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(posts_bp, url_prefix='/api')
+    app.register_blueprint(profile_bp, url_prefix='/api')
     
     # Create database tables
     with app.app_context():
@@ -56,6 +58,10 @@ def create_app():
     def user_profile():
         return send_from_directory(app.static_folder ,'components/UserProfile/UserProfile.html')
 
+    # Serve uploaded images from backend/static/uploads
+    @app.route('/static/uploads/<filename>')
+    def uploaded_file(filename):
+        return send_from_directory(os.path.join('static', 'uploads'), filename)
     
     # Catch-all route for static files
     @app.route('/<path:path>')
