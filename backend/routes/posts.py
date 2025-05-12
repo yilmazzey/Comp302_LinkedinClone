@@ -143,4 +143,41 @@ def unlike_post(post_id):
         db.session.rollback()
         current_app.logger.error(f"Error unliking post: {str(e)}")
         current_app.logger.error(traceback.format_exc())
-        return jsonify({'error': 'Failed to unlike post', 'details': str(e)}), 500 
+        return jsonify({'error': 'Failed to unlike post', 'details': str(e)}), 500
+
+@posts_bp.route('/user/posts', methods=['GET'])
+@jwt_required()
+def get_user_posts():
+    try:
+        current_user_id = get_jwt_identity()
+        current_app.logger.info(f"Fetching posts for user {current_user_id}")
+        
+        # Get user to verify they exist
+        user = User.query.get(current_user_id)
+        if not user:
+            current_app.logger.error(f"User {current_user_id} not found")
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Get all posts by this user, ordered by creation date (newest first)
+        posts = Post.query.filter_by(author_id=current_user_id).order_by(Post.created_at.desc()).all()
+        current_app.logger.info(f"Found {len(posts)} posts for user {current_user_id}")
+        
+        posts_data = []
+        for post in posts:
+            try:
+                post_dict = post.to_dict()
+                # Set liked_by_user to True if the current user has liked this post
+                post_dict['liked_by_user'] = any(like.user_id == current_user_id for like in post.likes)
+                posts_data.append(post_dict)
+                current_app.logger.info(f"Processed post {post.id}: {post_dict}")
+            except Exception as e:
+                current_app.logger.error(f"Error processing post {post.id}: {str(e)}")
+                current_app.logger.error(traceback.format_exc())
+                continue
+        
+        current_app.logger.info(f"Returning {len(posts_data)} posts for user {current_user_id}")
+        return jsonify(posts_data)
+    except Exception as e:
+        current_app.logger.error(f"Error in get_user_posts: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500 
