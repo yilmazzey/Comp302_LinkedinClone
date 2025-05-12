@@ -18,6 +18,7 @@ class User(db.Model):
     bio = db.Column(db.Text)
     education = db.Column(db.Text)
     experience = db.Column(db.Text)
+    is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -39,6 +40,7 @@ class User(db.Model):
             'bio': self.bio,
             'education': self.education,
             'experience': self.experience,
+            'is_admin': self.is_admin,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         } 
