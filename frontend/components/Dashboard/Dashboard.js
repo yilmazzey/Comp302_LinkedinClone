@@ -75,17 +75,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and render posts
     async function fetchAndRenderPosts() {
         const postsFeed = document.getElementById('postsFeed');
-        if (!postsFeed) return;
+        if (!postsFeed) {
+            console.error('Posts feed element not found');
+            return;
+        }
         
         postsFeed.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
         
         try {
-            const response = await fetch('/api/posts');
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch('/api/posts', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
             if (!response.ok) {
-                throw new Error(`Failed to fetch posts: ${response.status}`);
+                const errorData = await response.json();
+                console.error('Server response:', errorData);
+                throw new Error(errorData.error || errorData.details || `HTTP error! status: ${response.status}`);
             }
             
             const posts = await response.json();
+            console.log('Received posts:', posts);
+            
             postsFeed.innerHTML = '';
             
             if (posts.length === 0) {
@@ -94,31 +111,98 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             posts.forEach(post => {
-                const postCard = document.createElement('div');
-                postCard.className = 'card mb-3';
-                postCard.innerHTML = `
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <img src="${post.author_profile_photo || 'https://via.placeholder.com/40'}" class="rounded-circle me-2" style="width:40px; height:40px;">
-                            <div>
-                                <strong>${post.author_first_name || ''} ${post.author_last_name || ''}</strong><br>
-                                <small>${new Date(post.created_at).toLocaleString()}</small>
-                            </div>
-                        </div>
-                        <p>${post.content}</p>
-                        ${post.image_url ? `<img src="${post.image_url}" class="img-fluid rounded mb-2" alt="Post Image">` : ''}
-                        <div>
-                            <button class="btn btn-outline-primary btn-sm me-2"><i class="fas fa-thumbs-up"></i> Like</button>
-                            <button class="btn btn-outline-secondary btn-sm"><i class="fas fa-comment"></i> Comment</button>
-                        </div>
-                    </div>
-                `;
-                postsFeed.appendChild(postCard);
+                try {
+                    const postCard = renderPost(post);
+                    postsFeed.appendChild(postCard);
+                } catch (err) {
+                    console.error('Error rendering post:', err);
+                    console.error('Problematic post data:', post);
+                }
             });
         } catch (err) {
             console.error('Error fetching posts:', err);
-            postsFeed.innerHTML = `<div class="alert alert-danger">${err.message || 'Failed to load posts.'}</div>`;
+            postsFeed.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5>Error Loading Posts</h5>
+                    <p>${err.message || 'Failed to load posts.'}</p>
+                    <button class="btn btn-outline-danger btn-sm mt-2" onclick="fetchAndRenderPosts()">
+                        Try Again
+                    </button>
+                </div>
+            `;
         }
+    }
+
+    function renderPost(post) {
+        const postElement = document.createElement('div');
+        postElement.className = 'card mb-3';
+        postElement.innerHTML = `
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="${post.author_profile_photo || '/images/default-profile.png'}" 
+                         class="rounded-circle me-2" 
+                         style="width: 48px; height: 48px; object-fit: cover;">
+                    <div>
+                        <h5 class="card-title mb-0">${post.author_name}</h5>
+                        <p class="text-muted mb-0">${post.author_job_title || ''}</p>
+                    </div>
+                </div>
+                <p class="card-text">${post.content}</p>
+                ${post.image_url ? `<img src="${post.image_url}" class="img-fluid rounded mb-3" alt="Post Image">` : ''}
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-decoration-none like-btn" data-post-id="${post.id}">
+                        <i class="fas fa-heart ${post.liked_by_user ? 'text-danger' : 'text-muted'}"></i>
+                        <span class="likes-count">${post.likes_count}</span>
+                    </button>
+                    <small class="text-muted ms-2">${new Date(post.created_at).toLocaleDateString()}</small>
+                </div>
+            </div>
+        `;
+
+        // Add like button event listener
+        const likeBtn = postElement.querySelector('.like-btn');
+        likeBtn.addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                const response = await fetch(`/api/posts/${post.id}/${post.liked_by_user ? 'unlike' : 'like'}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update the like count and button state
+                    const likesCount = postElement.querySelector('.likes-count');
+                    const heartIcon = postElement.querySelector('.fa-heart');
+                    
+                    likesCount.textContent = data.likes_count;
+                    if (post.liked_by_user) {
+                        heartIcon.classList.remove('text-danger');
+                        heartIcon.classList.add('text-muted');
+                    } else {
+                        heartIcon.classList.remove('text-muted');
+                        heartIcon.classList.add('text-danger');
+                    }
+                    post.liked_by_user = !post.liked_by_user;
+                    post.likes_count = data.likes_count;
+                } else {
+                    const error = await response.json();
+                    console.error('Like/unlike error:', error);
+                    alert(error.error || error.details || 'Failed to update like status');
+                }
+            } catch (err) {
+                console.error('Error updating like:', err);
+                alert('Failed to update like status. Please try again.');
+            }
+        });
+
+        return postElement;
     }
 
     // Initial fetch of posts

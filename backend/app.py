@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager  # Add this import
 from config import Config
 from models.user import db
-from models.post import Post, Comment, Like
+from models.post import Post, Comment, PostLike
 from routes.auth import auth_bp
 from routes.posts import posts_bp
 from routes.profile import profile_bp
