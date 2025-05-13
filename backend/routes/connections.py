@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import User, db, connections, Notification
+from models.message import Message
 from sqlalchemy import and_, or_
 
 connections_bp = Blueprint('connections', __name__)
@@ -202,4 +203,47 @@ def mark_notification_read(notification_id):
     notification.is_read = True
     db.session.commit()
     
-    return jsonify({'message': 'Notification marked as read'}) 
+    return jsonify({'message': 'Notification marked as read'})
+
+@connections_bp.route('/messages/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_messages(user_id):
+    current_user_id = get_jwt_identity()
+    # Only allow messaging with connections
+    is_connected = db.session.query(connections).filter(
+        or_(
+            and_(connections.c.user_id == current_user_id, connections.c.connected_user_id == user_id, connections.c.status == 'accepted'),
+            and_(connections.c.user_id == user_id, connections.c.connected_user_id == current_user_id, connections.c.status == 'accepted')
+        )
+    ).first()
+    if not is_connected:
+        return jsonify({'error': 'Not connected'}), 403
+    messages = Message.query.filter(
+        or_(
+            and_(Message.sender_id == current_user_id, Message.receiver_id == user_id),
+            and_(Message.sender_id == user_id, Message.receiver_id == current_user_id)
+        )
+    ).order_by(Message.created_at.asc()).all()
+    return jsonify({'messages': [m.to_dict() for m in messages]})
+
+@connections_bp.route('/messages/<int:user_id>', methods=['POST'])
+@jwt_required()
+def send_message(user_id):
+    current_user_id = get_jwt_identity()
+    data = request.get_json()
+    content = data.get('content', '').strip()
+    if not content:
+        return jsonify({'error': 'Message content required'}), 400
+    # Only allow messaging with connections
+    is_connected = db.session.query(connections).filter(
+        or_(
+            and_(connections.c.user_id == current_user_id, connections.c.connected_user_id == user_id, connections.c.status == 'accepted'),
+            and_(connections.c.user_id == user_id, connections.c.connected_user_id == current_user_id, connections.c.status == 'accepted')
+        )
+    ).first()
+    if not is_connected:
+        return jsonify({'error': 'Not connected'}), 403
+    message = Message(sender_id=current_user_id, receiver_id=user_id, content=content)
+    db.session.add(message)
+    db.session.commit()
+    return jsonify({'message': message.to_dict()}) 
