@@ -16,63 +16,53 @@
   <div class="dashboard-container">
     <div class="bg-white">
       <div class="container">
-        <nav class="navbar navbar-expand-lg bg-white" style="height:65px;">
+        <nav class="navbar navbar-expand-lg bg-white" style="height:64px; font-family: Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border-bottom: 1px solid #e6e6e6;">
           <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fab fa-linkedin text-primary ms-5 w3-xxlarge"></i></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent" aria-controls="#navbarSupportedContent" aria-expanded="false"
-              aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <form class="d-flex" role="search">
-              <input class="form-control me-2 bg-light" type="search" placeholder="Search" aria-label="Search">
+            <a class="navbar-brand" href="#"><i class="fab fa-linkedin text-primary ms-3" style="font-size:2.2rem;"></i></a>
+            <form class="d-flex ms-3" role="search" style="background:#eef3f8; border-radius:4px; padding:8px 16px; width:320px;">
+              <i class="fas fa-search" style="color:#666; margin-right:8px; align-self:center;"></i>
+              <input class="form-control me-2 bg-light border-0" type="search" placeholder="Search" aria-label="Search" style="background:none; font-size:1rem; font-family:Arial,sans-serif;">
             </form>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-              <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+              <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center" style="gap:24px;">
                 <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="#">
-                    <i class="fas fa-house w3-xlarge text-center mt-2 me-3">
-                      <div class="yazı text-muted mt-2">Home</div>
-                    </i>
+                  <a class="nav-link active d-flex flex-column align-items-center" aria-current="page" href="#" style="color:#444; font-size:0.92rem; padding:6px 10px; border-radius:4px;">
+                    <i class="fas fa-house" style="font-size:1.3rem; margin-bottom:2px;"></i>
+                    <span>Home</span>
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">
-                    <i class="fas fa-user-group w3-xlarge text-muted text-center mt-2 me-3">
-                      <div class="yazı text-muted mt-2">My Network</div>
-                    </i>
+                  <a class="nav-link d-flex flex-column align-items-center" href="#" style="color:#444; font-size:0.92rem; padding:6px 10px; border-radius:4px;">
+                    <i class="fas fa-briefcase" style="font-size:1.3rem; margin-bottom:2px;"></i>
+                    <span>Jobs</span>
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">
-                    <i class="fas fa-briefcase w3-xlarge text-center text-muted mt-2 me-3">
-                      <div class="yazı text-muted mt-2">Jobs</div>
-                    </i>
+                <li class="nav-item position-relative" id="messagingNavItem">
+                  <a href="#" class="nav-link d-flex flex-column align-items-center" id="messagingNavBtn" style="color:#444; font-size:0.92rem; padding:6px 10px; border-radius:4px;">
+                    <i class="fas fa-comment-dots" style="font-size:1.3rem; margin-bottom:2px;"></i>
+                    <span>Messaging</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="messagingCount" style="display:none;">0</span>
                   </a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">
-                    <i class="fas fa-comment-dots w3-xlarge text-center text-muted mt-2 me-3">
-                      <div class="yazı text-muted mt-2">Messaging</div>
-                    </i>
+                <li class="nav-item dropdown" id="notificationDropdown">
+                  <a href="#" class="nav-link position-relative d-flex flex-column align-items-center" id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false" style="color:#444; font-size:0.92rem; padding:6px 10px; border-radius:4px;">
+                    <i class="fas fa-bell" style="font-size:1.3rem; margin-bottom:2px;"></i>
+                    <span>Notifications</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount" style="display:none;">0</span>
                   </a>
-                </li>
-                <li class="nav-item">
-                  <a href="#" class="nav-link">
-                    <i class="fas fa-bell w3-xlarge text-center text-muted mt-2 me-3">
-                      <div class="text-muted mt-2 yazı">Notifications</div>
-                    </i>
-                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationBell" id="notificationList" style="width:350px; max-height:400px; overflow-y:auto;">
+                    <li class="dropdown-item text-center text-muted" style="font-family: Arial, sans-serif;">No new notifications</li>
+                  </ul>
                 </li>
                 <li class="dropdown border-2 nav-item mt-1">
-                  <a class="nav-link toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img class="rounded-circle" src="https://via.placeholder.com/30" style="width:30px; height:30px;">
+                  <a class="nav-link toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img id="navbarProfilePhoto" class="rounded-circle" src="/static/uploads/default-profile.png" style="width:28px; height:28px; object-fit:cover; border:1px solid #e6e6e6;">
                     <div class="text-center dropdown-toggle yazı text-muted mt-1">Me</div>
                   </a>
                   <div class="dropdown-menu">
                     <div class="dropdown-item-text mb-3" style="width: 270px;">
                       <a href="#" class="text-dark text-decoration-none">
-                        <img src="https://via.placeholder.com/60" alt="" class="rounded-circle" style="width: 60px; height:60px;">
+                        <img id="navbarProfilePhotoLarge" src="/static/uploads/default-profile.png" alt="" class="rounded-circle" style="width: 60px; height:60px;">
                         <span><strong id="userName">User Name</strong><br><span id="userTitle">User Title</span></span>
                       </a>
                       <button type="button" class="btn btn-outline-primary w3-hover-pale-blue profil btn-sm mt-2 rounded-4">
@@ -110,7 +100,7 @@
         <!-- Sidebar -->
         <div class="col-md-3">
           <div class="card mb-3">
-            <img src="https://via.placeholder.com/300x100" class="card-img-top" alt="Profile">
+            <img src="/static/uploads/default-profile.png" class="rounded-circle mx-auto mt-3 d-block" alt="Profile" style="width:60px; height:60px; object-fit:cover;">
             <div class="card-body text-center">
               <h5 class="card-title" id="sidebarUserName">User Name</h5>
               <p class="card-text" id="sidebarUserTitle">User Title</p>
@@ -119,11 +109,9 @@
           </div>
           <div class="card mb-3">
             <div class="card-header">Connections</div>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">John Doe</li>
-              <li class="list-group-item">Jane Smith</li>
-              <li class="list-group-item">Mike Johnson</li>
-            </ul>
+            <div class="list-group list-group-flush" id="connectionsList">
+              <!-- Connections will be populated here -->
+            </div>
           </div>
         </div>
         <!-- Feed -->
@@ -143,18 +131,9 @@
         <div class="col-md-3">
           <div class="card mb-3">
             <div class="card-header">Suggested Connections</div>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item d-flex align-items-center">
-                <img src="https://via.placeholder.com/30" class="rounded-circle me-2" style="width:30px; height:30px;">
-                <span>Jane Smith</span>
-                <button class="btn btn-outline-primary btn-sm ms-auto">Connect</button>
-              </li>
-              <li class="list-group-item d-flex align-items-center">
-                <img src="https://via.placeholder.com/30" class="rounded-circle me-2" style="width:30px; height:30px;">
-                <span>Mike Johnson</span>
-                <button class="btn btn-outline-primary btn-sm ms-auto">Connect</button>
-              </li>
-            </ul>
+            <div class="list-group list-group-flush" id="suggestedConnectionsList">
+              <!-- Suggested connections will be populated here -->
+            </div>
           </div>
         </div>
       </div>
@@ -164,5 +143,6 @@
   <!-- Bootstrap JS and Popper.js -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script src="/components/Dashboard/notifications-dropdown.js"></script>
 </body>
 </html> 
