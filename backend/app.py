@@ -8,6 +8,7 @@ from routes.auth import auth_bp
 from routes.posts import posts_bp
 from routes.profile import profile_bp
 from routes.admin import admin_bp
+from routes.connections import connections_bp
 import os
 
 def create_app():
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(posts_bp, url_prefix='/api')
     app.register_blueprint(profile_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    app.register_blueprint(connections_bp, url_prefix='/api')
     
     # Create database tables
     with app.app_context():
@@ -63,6 +65,10 @@ def create_app():
     @app.route('/userprofile')
     def user_profile():
         return send_from_directory(app.static_folder ,'components/UserProfile/UserProfile.html')
+    
+    @app.route('/network')
+    def network():
+        return send_from_directory(app.static_folder, 'components/Network/Network.html')
 
     # Serve uploaded images from backend/static/uploads
     @app.route('/static/uploads/<filename>')

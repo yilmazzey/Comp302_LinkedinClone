@@ -149,17 +149,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <p class="card-text">${post.content}</p>
                 ${post.image_url ? `<img src="${post.image_url}" class="img-fluid rounded mb-3" alt="Post Image">` : ''}
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center mb-3">
                     <button class="btn btn-link text-decoration-none like-btn" data-post-id="${post.id}">
                         <i class="fas fa-heart ${post.liked_by_user ? 'text-danger' : 'text-muted'}"></i>
                         <span class="likes-count">${post.likes_count}</span>
                     </button>
+                    <button class="btn btn-link text-decoration-none comment-btn" data-post-id="${post.id}">
+                        <i class="fas fa-comment text-muted"></i>
+                        <span class="comments-count">${post.comments ? post.comments.length : 0}</span>
+                    </button>
                     <small class="text-muted ms-2">${new Date(post.created_at).toLocaleDateString()}</small>
+                </div>
+                <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                    <div class="comments-list mb-3"></div>
+                    <form class="comment-form" data-post-id="${post.id}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Write a comment..." required>
+                            <button class="btn btn-primary" type="submit">Post</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         `;
 
-        // Add like button event listener
+        // Add like button functionality
         const likeBtn = postElement.querySelector('.like-btn');
         likeBtn.addEventListener('click', async () => {
             try {
@@ -177,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    // Update the like count and button state
                     const likesCount = postElement.querySelector('.likes-count');
                     const heartIcon = postElement.querySelector('.fa-heart');
                     
@@ -202,9 +214,268 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Add comment button functionality
+        const commentBtn = postElement.querySelector('.comment-btn');
+        const commentsSection = postElement.querySelector('.comments-section');
+        const commentsList = postElement.querySelector('.comments-list');
+        
+        commentBtn.addEventListener('click', async () => {
+            if (commentsSection.style.display === 'none') {
+                commentsSection.style.display = 'block';
+                await loadComments(post.id, commentsList);
+            } else {
+                commentsSection.style.display = 'none';
+            }
+        });
+
+        // Add comment form submission
+        const commentForm = postElement.querySelector('.comment-form');
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = commentForm.querySelector('input');
+            const content = input.value.trim();
+            
+            if (!content) return;
+
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                const response = await fetch(`/api/posts/${post.id}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                if (response.ok) {
+                    const comment = await response.json();
+                    const commentsCount = postElement.querySelector('.comments-count');
+                    commentsCount.textContent = parseInt(commentsCount.textContent) + 1;
+                    
+                    // Add new comment to the list
+                    const commentElement = createCommentElement(comment);
+                    commentsList.appendChild(commentElement);
+                    
+                    // Clear input
+                    input.value = '';
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || error.details || 'Failed to add comment');
+                }
+            } catch (err) {
+                console.error('Error adding comment:', err);
+                alert(err.message || 'Failed to add comment. Please try again.');
+            }
+        });
+
         return postElement;
+    }
+
+    async function loadComments(postId, commentsList) {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`/api/posts/${postId}/comments`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const comments = await response.json();
+                commentsList.innerHTML = '';
+                comments.forEach(comment => {
+                    const commentElement = createCommentElement(comment);
+                    commentsList.appendChild(commentElement);
+                });
+            } else {
+                throw new Error('Failed to load comments');
+            }
+        } catch (err) {
+            console.error('Error loading comments:', err);
+            commentsList.innerHTML = '<div class="alert alert-danger">Failed to load comments</div>';
+        }
+    }
+
+    function createCommentElement(comment) {
+        const div = document.createElement('div');
+        div.className = 'comment mb-2';
+        div.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="flex-grow-1">
+                    <strong>${comment.author_name || 'User'}</strong>
+                    <p class="mb-0">${comment.content}</p>
+                    <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                </div>
+            </div>
+        `;
+        return div;
     }
 
     // Initial fetch of posts
     fetchAndRenderPosts();
+
+    // Load connections for the sidebar
+    async function loadConnections() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch('/api/connections', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load connections');
+            }
+
+            const data = await response.json();
+            const connectionsList = document.getElementById('connectionsList');
+            
+            if (data.connections.length === 0) {
+                connectionsList.innerHTML = `
+                    <div class="list-group-item text-muted">
+                        No connections yet
+                    </div>
+                `;
+                return;
+            }
+
+            connectionsList.innerHTML = data.connections.map(user => `
+                <div class="list-group-item d-flex align-items-center">
+                    <img src="${user.profile_photo || '/static/default-profile.png'}" 
+                         class="rounded-circle me-2" 
+                         style="width:30px; height:30px;"
+                         alt="${user.first_name || ''}">
+                    <span>${user.first_name || ''} ${user.last_name || ''}</span>
+                    <button class="btn btn-outline-primary btn-sm ms-auto view-profile-btn" 
+                            data-user-id="${user.id}">
+                        View Profile
+                    </button>
+                </div>
+            `).join('');
+            // Attach event listeners for view profile buttons
+            connectionsList.querySelectorAll('.view-profile-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = btn.getAttribute('data-user-id');
+                    window.location.href = `/userprofile?id=${userId}`;
+                });
+            });
+        } catch (error) {
+            console.error('Error loading connections:', error);
+            document.getElementById('connectionsList').innerHTML = `
+                <div class="list-group-item text-danger">
+                    Error loading connections
+                </div>
+            `;
+        }
+    }
+
+    // Load suggested connections
+    async function loadSuggestedConnections() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch('/api/suggested-connections', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load suggested connections');
+            }
+
+            const data = await response.json();
+            const suggestedList = document.getElementById('suggestedConnectionsList');
+            
+            if (data.suggested_connections.length === 0) {
+                suggestedList.innerHTML = `
+                    <div class="list-group-item text-muted">
+                        No suggested connections
+                    </div>
+                `;
+                return;
+            }
+
+            suggestedList.innerHTML = data.suggested_connections.map(user => `
+                <div class="list-group-item d-flex align-items-center">
+                    <img src="${user.profile_photo || '/static/default-profile.png'}" 
+                         class="rounded-circle me-2" 
+                         style="width:30px; height:30px;"
+                         alt="${user.first_name}">
+                    <span>${user.first_name} ${user.last_name}</span>
+                    <button class="btn btn-outline-primary btn-sm ms-auto connect-btn" 
+                            data-user-id="${user.id}">
+                        Connect
+                    </button>
+                </div>
+            `).join('');
+            // Attach event listeners for connect buttons
+            suggestedList.querySelectorAll('.connect-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const userId = btn.getAttribute('data-user-id');
+                    await connect(userId);
+                });
+            });
+        } catch (error) {
+            console.error('Error loading suggested connections:', error);
+            document.getElementById('suggestedConnectionsList').innerHTML = `
+                <div class="list-group-item text-danger">
+                    Error loading suggested connections
+                </div>
+            `;
+        }
+    }
+
+    // Connect with a user
+    async function connect(userId) {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`/api/connect/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send connection request');
+            }
+
+            // Reload suggested connections
+            loadSuggestedConnections();
+        } catch (error) {
+            console.error('Error sending connection request:', error);
+            alert('Failed to send connection request. Please try again.');
+        }
+    }
+
+    // View user profile
+    function viewProfile(userId) {
+        window.location.href = `/userprofile?id=${userId}`;
+    }
+
+    // Load connections when the page loads
+    loadConnections();
+    loadSuggestedConnections();
 }); 

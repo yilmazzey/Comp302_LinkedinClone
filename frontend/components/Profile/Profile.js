@@ -108,6 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Adding education item:', edu);
             addEducationItem(edu);
         });
+
+        // Connection count
+        console.log('connections_count:', user.connections_count, typeof user.connections_count);
+        const count = (user.connections_count !== undefined && user.connections_count !== null)
+            ? user.connections_count
+            : 0;
+        if (document.getElementById('connectionCount')) {
+            document.getElementById('connectionCount').textContent = count;
+        }
     }
 
     // Check if add buttons exist
@@ -264,30 +273,4 @@ function addEducationItem(data = {}) {
         <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>
     `;
     educationList.appendChild(div);
-}
-
-function collectExperienceData() {
-    console.log('Collecting experience data');
-    const experienceItems = document.querySelectorAll('.experience-item');
-    return Array.from(experienceItems).map(item => {
-        const inputs = item.querySelectorAll('input');
-        return {
-            role: inputs[0].value,
-            company: inputs[1].value,
-            years: inputs[2].value
-        };
-    }).filter(exp => exp.role || exp.company || exp.years);
-}
-
-function collectEducationData() {
-    console.log('Collecting education data');
-    const educationItems = document.querySelectorAll('.education-item');
-    return Array.from(educationItems).map(item => {
-        const inputs = item.querySelectorAll('input');
-        return {
-            school: inputs[0].value,
-            degree: inputs[1].value,
-            years: inputs[2].value
-        };
-    }).filter(edu => edu.school || edu.degree || edu.years);
 }
