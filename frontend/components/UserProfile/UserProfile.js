@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Get user ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUserId = urlParams.get('id');
+
     // Fetch latest user info from backend
     async function fetchAndRenderUserProfile() {
         try {
@@ -7,7 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('No authentication token found');
             }
 
-            const response = await fetch('/api/profile', {
+            // If we have a target user ID, fetch that user's profile, otherwise fetch current user's profile
+            const endpoint = targetUserId ? `/api/profile/${targetUserId}` : '/api/profile';
+            const response = await fetch(endpoint, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -21,8 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = await response.json();
             console.log('Fetched user data:', user);
 
-            // Update localStorage with latest user data
-            localStorage.setItem('user', JSON.stringify(user));
+            // Update localStorage with latest user data only if it's the current user's profile
+            if (!targetUserId) {
+                localStorage.setItem('user', JSON.stringify(user));
+            }
 
             // Set profile picture with fallback
             const profilePic = document.getElementById('profilePicture');
@@ -35,8 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
             document.getElementById('userTitle').textContent = user.job_title || '';
             document.getElementById('userLocation').textContent = user.location || '';
-            document.getElementById('connectionCount').textContent = `${user.connections || 0}+ connections`;
+            document.getElementById('connectionCount').textContent = `${user.connections_count || 0} connections`;
             document.getElementById('userBio').textContent = user.bio || '';
+
+            // Show/hide edit buttons based on whether it's the current user's profile
+            const editButtons = document.querySelectorAll('.edit-profile-btn');
+            editButtons.forEach(btn => {
+                btn.style.display = targetUserId ? 'none' : 'block';
+            });
 
             // Render experience
             const experienceList = document.getElementById('experienceList');
@@ -80,14 +94,23 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchAndRenderUserPosts(user.id);
         } catch (err) {
             console.error('Error fetching profile:', err);
-            // Fallback to localStorage if backend fails
-            const user = JSON.parse(localStorage.getItem('user')) || {};
-            document.getElementById('profilePicture').src = user.profile_photo || 'https://via.placeholder.com/150';
-            document.getElementById('userName').textContent = `${user.first_name || ''} ${user.last_name || ''}`;
-            document.getElementById('userTitle').textContent = user.job_title || '';
-            document.getElementById('userLocation').textContent = user.location || '';
-            document.getElementById('connectionCount').textContent = `${user.connections || 0}+ connections`;
-            document.getElementById('userBio').textContent = user.bio || '';
+            // Fallback to localStorage if backend fails and it's the current user's profile
+            if (!targetUserId) {
+                const user = JSON.parse(localStorage.getItem('user')) || {};
+                document.getElementById('profilePicture').src = user.profile_photo || 'https://via.placeholder.com/150';
+                document.getElementById('userName').textContent = `${user.first_name || ''} ${user.last_name || ''}`;
+                document.getElementById('userTitle').textContent = user.job_title || '';
+                document.getElementById('userLocation').textContent = user.location || '';
+                document.getElementById('connectionCount').textContent = `${user.connections_count || 0} connections`;
+                document.getElementById('userBio').textContent = user.bio || '';
+            } else {
+                // Show error message for other users' profiles
+                document.getElementById('userName').textContent = 'Profile Not Found';
+                document.getElementById('userTitle').textContent = '';
+                document.getElementById('userLocation').textContent = '';
+                document.getElementById('connectionCount').textContent = '0 connections';
+                document.getElementById('userBio').textContent = 'This profile could not be loaded.';
+            }
         }
     }
 
@@ -162,14 +185,24 @@ document.addEventListener('DOMContentLoaded', () => {
                                  alt="Post Image"
                                  onerror="this.style.display='none'">` 
                         : ''}
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center mb-3">
                             <button class="btn btn-outline-primary btn-sm me-2 like-btn ${post.liked_by_user ? 'active' : ''}" data-post-id="${post.id}">
                                 <i class="fas fa-heart"></i> 
                                 <span class="like-count">${post.likes_count}</span>
                             </button>
-                            <button class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-comment"></i> Comment
+                            <button class="btn btn-outline-secondary btn-sm comment-btn" data-post-id="${post.id}">
+                                <i class="fas fa-comment"></i>
+                                <span class="comments-count">${post.comments ? post.comments.length : 0}</span>
                             </button>
+                        </div>
+                        <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                            <div class="comments-list mb-3"></div>
+                            <form class="comment-form" data-post-id="${post.id}">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Write a comment..." required>
+                                    <button class="btn btn-primary" type="submit">Post</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 `;
@@ -201,6 +234,60 @@ document.addEventListener('DOMContentLoaded', () => {
                         alert(`Failed to ${action} post. Please try again.`);
                     }
                 });
+
+                // Add comment button functionality
+                const commentBtn = card.querySelector('.comment-btn');
+                const commentsSection = card.querySelector('.comments-section');
+                const commentsList = card.querySelector('.comments-list');
+                
+                commentBtn.addEventListener('click', async () => {
+                    if (commentsSection.style.display === 'none') {
+                        commentsSection.style.display = 'block';
+                        await loadComments(post.id, commentsList);
+                    } else {
+                        commentsSection.style.display = 'none';
+                    }
+                });
+
+                // Add comment form submission
+                const commentForm = card.querySelector('.comment-form');
+                commentForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const input = commentForm.querySelector('input');
+                    const content = input.value.trim();
+                    
+                    if (!content) return;
+
+                    try {
+                        const response = await fetch(`/api/posts/${post.id}/comments`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ content })
+                        });
+
+                        if (response.ok) {
+                            const comment = await response.json();
+                            const commentsCount = card.querySelector('.comments-count');
+                            commentsCount.textContent = parseInt(commentsCount.textContent) + 1;
+                            
+                            // Add new comment to the list
+                            const commentElement = createCommentElement(comment);
+                            commentsList.appendChild(commentElement);
+                            
+                            // Clear input
+                            input.value = '';
+                        } else {
+                            const error = await response.json();
+                            throw new Error(error.error || error.details || 'Failed to add comment');
+                        }
+                    } catch (err) {
+                        console.error('Error adding comment:', err);
+                        alert(err.message || 'Failed to add comment. Please try again.');
+                    }
+                });
             });
         } catch (err) {
             console.error('Error fetching posts:', err);
@@ -210,6 +297,50 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-link" onclick="fetchAndRenderUserPosts(${userId})">Try Again</button>
                 </div>`;
         }
+    }
+
+    async function loadComments(postId, commentsList) {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`/api/posts/${postId}/comments`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const comments = await response.json();
+                commentsList.innerHTML = '';
+                comments.forEach(comment => {
+                    const commentElement = createCommentElement(comment);
+                    commentsList.appendChild(commentElement);
+                });
+            } else {
+                throw new Error('Failed to load comments');
+            }
+        } catch (err) {
+            console.error('Error loading comments:', err);
+            commentsList.innerHTML = '<div class="alert alert-danger">Failed to load comments</div>';
+        }
+    }
+
+    function createCommentElement(comment) {
+        const div = document.createElement('div');
+        div.className = 'comment mb-2';
+        div.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="flex-grow-1">
+                    <strong>${comment.author_name || 'User'}</strong>
+                    <p class="mb-0">${comment.content}</p>
+                    <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+                </div>
+            </div>
+        `;
+        return div;
     }
 
     // Initialize profile
@@ -232,14 +363,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Experience/Education (dummy handlers)
     document.getElementById('addExperienceBtn').addEventListener('click', () => {
-        alert('Add Experience functionality coming soon!');
+        window.location.href = '/components/Profile/Profile.html';
     });
     
     document.getElementById('addEducationBtn').addEventListener('click', () => {
-        alert('Add Education functionality coming soon!');
+        window.location.href = '/components/Profile/Profile.html';
     });
     
     document.getElementById('editPhotoBtn').addEventListener('click', () => {
-        alert('Change Profile Photo functionality coming soon!');
+        window.location.href = '/components/Profile/Profile.html';
     });
 }); 

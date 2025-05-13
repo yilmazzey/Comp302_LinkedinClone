@@ -62,11 +62,16 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
 
     def to_dict(self):
+        author = User.query.get(self.author_id)
+        author_name = f"{author.first_name or ''} {author.last_name or ''}".strip() if author else 'User'
+        author_profile_photo = author.profile_photo if author and author.profile_photo else ''
         return {
             'id': self.id,
             'content': self.content,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'author_id': self.author_id,
+            'author_name': author_name,
+            'author_profile_photo': author_profile_photo,
             'post_id': self.post_id
         }
 

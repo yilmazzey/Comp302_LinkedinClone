@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
-from models.user import db, User
-from models.post import Post, PostLike
+from models.user import db, User, Notification
+from models.post import Post, PostLike, Comment
 import os
 from datetime import datetime
 import traceback
@@ -78,28 +78,37 @@ def like_post(post_id):
     try:
         current_user_id = get_jwt_identity()
         current_app.logger.info(f"User {current_user_id} attempting to like post {post_id}")
-        
-        # Check if post exists
         post = Post.query.get_or_404(post_id)
-        
-        # Check if user already liked the post
         existing_like = PostLike.query.filter_by(
             user_id=current_user_id,
             post_id=post_id
         ).first()
-        
         if existing_like:
             return jsonify({'error': 'Post already liked'}), 400
-        
-        # Create new like
         new_like = PostLike(
             user_id=current_user_id,
             post_id=post_id
         )
-        
         db.session.add(new_like)
         db.session.commit()
-        
+        # Send notification to post author (unless self, and only if not already notified)
+        if post.author_id != current_user_id:
+            # Check for existing like notification
+            existing_notification = Notification.query.filter_by(
+                user_id=post.author_id,
+                sender_id=current_user_id,
+                type='like',
+                message=f"{User.query.get(current_user_id).first_name} liked your post"
+            ).first()
+            if not existing_notification:
+                notification = Notification(
+                    user_id=post.author_id,
+                    sender_id=current_user_id,
+                    type='like',
+                    message=f"{User.query.get(current_user_id).first_name} liked your post"
+                )
+                db.session.add(notification)
+                db.session.commit()
         current_app.logger.info(f"User {current_user_id} successfully liked post {post_id}")
         return jsonify({
             'message': 'Post liked successfully',
@@ -180,4 +189,44 @@ def get_user_posts():
     except Exception as e:
         current_app.logger.error(f"Error in get_user_posts: {str(e)}")
         current_app.logger.error(traceback.format_exc())
-        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500 
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@posts_bp.route('/posts/<int:post_id>/comments', methods=['POST'])
+@jwt_required()
+def add_comment(post_id):
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        content = data.get('content')
+        if not content:
+            return jsonify({'error': 'Comment content is required'}), 400
+        post = Post.query.get_or_404(post_id)
+        comment = Comment(content=content, author_id=user_id, post_id=post_id)
+        db.session.add(comment)
+        db.session.commit()
+        # Send notification to post author (unless self)
+        if post.author_id != user_id:
+            notification = Notification(
+                user_id=post.author_id,
+                sender_id=user_id,
+                type='comment',
+                message=f"{User.query.get(user_id).first_name} commented on your post"
+            )
+            db.session.add(notification)
+            db.session.commit()
+        return jsonify(comment.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error adding comment: {str(e)}")
+        return jsonify({'error': 'Failed to add comment', 'details': str(e)}), 500
+
+@posts_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
+@jwt_required()
+def get_comments(post_id):
+    try:
+        post = Post.query.get_or_404(post_id)
+        comments = [comment.to_dict() for comment in post.comments]
+        return jsonify(comments)
+    except Exception as e:
+        current_app.logger.error(f"Error fetching comments: {str(e)}")
+        return jsonify({'error': 'Failed to fetch comments', 'details': str(e)}), 500 

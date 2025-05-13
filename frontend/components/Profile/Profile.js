@@ -108,6 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Adding education item:', edu);
             addEducationItem(edu);
         });
+
+        // Connection count
+        console.log('connections_count:', user.connections_count, typeof user.connections_count);
+        const count = (user.connections_count !== undefined && user.connections_count !== null)
+            ? user.connections_count
+            : 0;
+        if (document.getElementById('connectionCount')) {
+            document.getElementById('connectionCount').textContent = count;
+        }
     }
 
     // Check if add buttons exist
@@ -135,32 +144,44 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         console.log('Form submitted');
         
-        // Collect all form data
-        const formData = new FormData();
-        formData.append('first_name', document.getElementById('firstName').value);
-        formData.append('last_name', document.getElementById('lastName').value);
-        formData.append('email', document.getElementById('email').value);
-        formData.append('job_title', document.getElementById('title').value);
-        formData.append('location', document.getElementById('location').value);
-        formData.append('bio', document.getElementById('bio').value);
-        
-        // Collect experience data
-        const experienceData = collectExperienceData();
-        console.log('Collected experience data:', experienceData);
-        formData.append('experience', JSON.stringify(experienceData));
-        
-        // Collect education data
-        const educationData = collectEducationData();
-        console.log('Collected education data:', educationData);
-        formData.append('education', JSON.stringify(educationData));
-        
-        // Handle profile image
-        const profileImageInput = document.getElementById('profileImage');
-        if (profileImageInput && profileImageInput.files.length > 0) {
-            formData.append('profile_image', profileImageInput.files[0]);
-        }
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No access token found');
+            }
 
-        // Add error message display
+            // Collect all form data
+            const formData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                job_title: document.getElementById('title').value,
+                location: document.getElementById('location').value,
+                bio: document.getElementById('bio').value,
+                experience: collectExperienceData(),
+                education: collectEducationData()
+            };
+            
+            // Handle profile image
+            const profileImageInput = document.getElementById('profileImage');
+            if (profileImageInput && profileImageInput.files.length > 0) {
+                const imageFile = profileImageInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    formData.profile_image = e.target.result;
+                    await submitForm(formData);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                await submitForm(formData);
+            }
+        } catch (err) {
+            console.error('Error preparing form data:', err);
+            alert('An error occurred while preparing the form data.');
+        }
+    });
+
+    async function submitForm(formData) {
         let errorDiv = document.getElementById('profileError');
         if (!errorDiv) {
             errorDiv = document.createElement('div');
@@ -182,9 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/profile', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify(formData)
             });
             
             console.log('Update response status:', response.status);
@@ -194,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 localStorage.setItem('user', JSON.stringify(data.user));
                 alert('Profile updated successfully!');
+                // Redirect to the user's profile page
                 window.location.href = '/userprofile';
             } else {
                 errorDiv.textContent = data.message || 'Failed to update profile.';
@@ -205,12 +228,49 @@ document.addEventListener('DOMContentLoaded', () => {
             errorDiv.style.display = 'block';
             console.error('Profile update JS error:', err);
         }
-    });
+    }
 
     // Initial fetch
     console.log('Starting initial profile fetch');
     fetchAndFillProfile();
 });
+
+function collectExperienceData() {
+    const experienceItems = document.querySelectorAll('.experience-item');
+    return Array.from(experienceItems).map(item => {
+        const inputs = item.querySelectorAll('input, textarea');
+        if (inputs.length < 6) {
+            console.error('Missing inputs in experience item');
+            return null;
+        }
+        return {
+            title: inputs[0].value || '',
+            company: inputs[1].value || '',
+            location: inputs[2].value || '',
+            start_date: inputs[3].value || '',
+            end_date: inputs[4].value || '',
+            description: inputs[5].value || ''
+        };
+    }).filter(item => item !== null);
+}
+
+function collectEducationData() {
+    const educationItems = document.querySelectorAll('.education-item');
+    return Array.from(educationItems).map(item => {
+        const inputs = item.querySelectorAll('input');
+        if (inputs.length < 5) {
+            console.error('Missing inputs in education item');
+            return null;
+        }
+        return {
+            school: inputs[0].value || '',
+            degree: inputs[1].value || '',
+            field: inputs[2].value || '',
+            start_date: inputs[3].value || '',
+            end_date: inputs[4].value || ''
+        };
+    }).filter(item => item !== null);
+}
 
 function addExperienceItem(data = {}) {
     console.log('Adding experience item:', data);
@@ -223,16 +283,28 @@ function addExperienceItem(data = {}) {
     div.className = 'experience-item mb-3 p-3 border rounded';
     div.innerHTML = `
         <div class="mb-2">
-            <label class="form-label">Role</label>
-            <input type="text" class="form-control" value="${data.role || ''}" placeholder="e.g., Software Engineer">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-control" value="${data.title || ''}" placeholder="e.g., Software Engineer">
         </div>
         <div class="mb-2">
             <label class="form-label">Company</label>
             <input type="text" class="form-control" value="${data.company || ''}" placeholder="e.g., Tech Corp">
         </div>
         <div class="mb-2">
-            <label class="form-label">Years</label>
-            <input type="text" class="form-control" value="${data.years || ''}" placeholder="e.g., 2020 - Present">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-control" value="${data.location || ''}" placeholder="e.g., New York">
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Start Date</label>
+            <input type="month" class="form-control" value="${data.start_date || ''}">
+        </div>
+        <div class="mb-2">
+            <label class="form-label">End Date</label>
+            <input type="month" class="form-control" value="${data.end_date || ''}" placeholder="Present">
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" placeholder="Describe your responsibilities and achievements">${data.description || ''}</textarea>
         </div>
         <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>
     `;
@@ -255,39 +327,21 @@ function addEducationItem(data = {}) {
         </div>
         <div class="mb-2">
             <label class="form-label">Degree</label>
-            <input type="text" class="form-control" value="${data.degree || ''}" placeholder="e.g., Bachelor of Science in Computer Science">
+            <input type="text" class="form-control" value="${data.degree || ''}" placeholder="e.g., Bachelor's Degree">
         </div>
         <div class="mb-2">
-            <label class="form-label">Years</label>
-            <input type="text" class="form-control" value="${data.years || ''}" placeholder="e.g., 2016 - 2020">
+            <label class="form-label">Field of Study</label>
+            <input type="text" class="form-control" value="${data.field || ''}" placeholder="e.g., Computer Science">
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Start Date</label>
+            <input type="month" class="form-control" value="${data.start_date || ''}">
+        </div>
+        <div class="mb-2">
+            <label class="form-label">End Date</label>
+            <input type="month" class="form-control" value="${data.end_date || ''}" placeholder="Present">
         </div>
         <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">Remove</button>
     `;
     educationList.appendChild(div);
-}
-
-function collectExperienceData() {
-    console.log('Collecting experience data');
-    const experienceItems = document.querySelectorAll('.experience-item');
-    return Array.from(experienceItems).map(item => {
-        const inputs = item.querySelectorAll('input');
-        return {
-            role: inputs[0].value,
-            company: inputs[1].value,
-            years: inputs[2].value
-        };
-    }).filter(exp => exp.role || exp.company || exp.years);
-}
-
-function collectEducationData() {
-    console.log('Collecting education data');
-    const educationItems = document.querySelectorAll('.education-item');
-    return Array.from(educationItems).map(item => {
-        const inputs = item.querySelectorAll('input');
-        return {
-            school: inputs[0].value,
-            degree: inputs[1].value,
-            years: inputs[2].value
-        };
-    }).filter(edu => edu.school || edu.degree || edu.years);
 }
