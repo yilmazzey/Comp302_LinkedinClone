@@ -9,6 +9,7 @@ from routes.posts import posts_bp
 from routes.profile import profile_bp
 from routes.admin import admin_bp
 from routes.connections import connections_bp
+from routes.search import search_bp
 import os
 
 def create_app():
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(profile_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(connections_bp, url_prefix='/api')
+    app.register_blueprint(search_bp)
     
     # Create database tables
     with app.app_context():
