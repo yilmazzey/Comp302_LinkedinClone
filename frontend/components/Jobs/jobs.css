@@ -1,0 +1,123 @@
+/* General Styles */
+body {
+    background-color: #f3f2ef;
+    padding-top: 60px;
+}
+
+/* Card Styles */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.2);
+    margin-bottom: 16px;
+}
+
+.card-body {
+    padding: 16px;
+}
+
+/* Job Card Styles */
+.job-card {
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: white;
+    transition: box-shadow 0.3s ease;
+}
+
+.job-card:hover {
+    box-shadow: 0 0 0 1px rgba(0,0,0,.15), 0 2px 3px rgba(0,0,0,.2);
+}
+
+.job-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0a66c2;
+    margin-bottom: 4px;
+}
+
+.company-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(0,0,0,.9);
+    margin-bottom: 4px;
+}
+
+.job-location {
+    font-size: 14px;
+    color: rgba(0,0,0,.6);
+    margin-bottom: 8px;
+}
+
+.job-type {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #e8f3ff;
+    color: #0a66c2;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.job-description {
+    font-size: 14px;
+    color: rgba(0,0,0,.75);
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #0a66c2;
+    border-color: #0a66c2;
+}
+
+.btn-primary:hover {
+    background-color: #004182;
+    border-color: #004182;
+}
+
+.btn-outline-primary {
+    color: #0a66c2;
+    border-color: #0a66c2;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0a66c2;
+    border-color: #0a66c2;
+}
+
+/* Form Styles */
+.form-control:focus, .form-select:focus {
+    border-color: #0a66c2;
+    box-shadow: 0 0 0 1px #0a66c2;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 8px;
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,.15);
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(0,0,0,.15);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    
+    .col-md-3 {
+        margin-bottom: 16px;
+    }
+} 
