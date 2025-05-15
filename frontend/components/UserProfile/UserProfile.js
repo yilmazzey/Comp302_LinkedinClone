@@ -55,18 +55,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // Render experience
             const experienceList = document.getElementById('experienceList');
             experienceList.innerHTML = '';
-            let experience = user.experience;
-            try { 
-                experience = JSON.parse(user.experience); 
+            let experience = [];
+            try {
+                experience = JSON.parse(user.experience);
+                if (typeof experience === 'string') {
+                    experience = JSON.parse(experience);
+                }
             } catch (e) {
                 console.log('Experience parsing error:', e);
+                experience = [];
             }
-            
-            if (Array.isArray(experience)) {
+            if (!Array.isArray(experience) || experience.length === 0) {
+                experienceList.innerHTML = '<div class="text-muted">No experience added yet.</div>';
+            } else {
                 experience.forEach(exp => {
+                    const roleOrTitle = exp.role || exp.title || '';
+                    const yearsOrDates = exp.years || ((exp.start_date || '') + (exp.end_date ? ' - ' + exp.end_date : ''));
+                    const company = exp.company || '';
+                    const location = exp.location ? `, ${exp.location}` : '';
                     const div = document.createElement('div');
                     div.className = "mb-2";
-                    div.innerHTML = `<strong>${exp.role}</strong> at ${exp.company}<br><span class="text-muted">${exp.years}</span>`;
+                    div.innerHTML = `<strong>${roleOrTitle}</strong> at ${company}${location}<br><span class="text-muted">${yearsOrDates}</span>`;
                     experienceList.appendChild(div);
                 });
             }
@@ -74,18 +83,23 @@ document.addEventListener('DOMContentLoaded', () => {
             // Render education
             const educationList = document.getElementById('educationList');
             educationList.innerHTML = '';
-            let education = user.education;
-            try { 
-                education = JSON.parse(user.education); 
+            let education = [];
+            try {
+                education = JSON.parse(user.education);
+                if (typeof education === 'string') {
+                    education = JSON.parse(education);
+                }
             } catch (e) {
                 console.log('Education parsing error:', e);
+                education = [];
             }
-            
-            if (Array.isArray(education)) {
+            if (!Array.isArray(education) || education.length === 0) {
+                educationList.innerHTML = '<div class="text-muted">No education added yet.</div>';
+            } else {
                 education.forEach(edu => {
                     const div = document.createElement('div');
                     div.className = "mb-2";
-                    div.innerHTML = `<strong>${edu.school}</strong><br>${edu.degree}<br><span class="text-muted">${edu.years}</span>`;
+                    div.innerHTML = `<strong>${edu.school || ''}</strong><br>${edu.degree || ''}<br><span class="text-muted">${edu.years || ''}</span>`;
                     educationList.appendChild(div);
                 });
             }
