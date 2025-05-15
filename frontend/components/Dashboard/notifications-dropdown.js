@@ -106,6 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({ action })
       });
+      // Mark all connection_request notifications from this sender as read
+      const notificationItems = notificationList.querySelectorAll('.notification-item');
+      notificationItems.forEach(item => {
+        const acceptBtn = item.querySelector('.accept-btn');
+        if (acceptBtn && acceptBtn.getAttribute('data-sender') == senderId) {
+          const markReadBtn = item.querySelector('.mark-read-btn');
+          if (markReadBtn) {
+            markReadBtn.click();
+          }
+        }
+      });
+      // Update dashboard connections UI if functions are available
+      if (window.loadConnections) window.loadConnections();
+      if (window.loadSuggestedConnections) window.loadSuggestedConnections();
       fetchNotifications();
     } catch (err) {
       console.error(`Error ${action}ing connection request:`, err);

@@ -378,12 +378,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
             `).join('');
-            // Attach event listeners for view profile buttons
+            // Attach event listeners for view profile buttons and also for image and name
             connectionsList.querySelectorAll('.view-profile-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const userId = btn.getAttribute('data-user-id');
-                    window.location.href = `/userprofile?id=${userId}`;
+                    window.location.href = `/components/FilteredProfile/FilteredProfile.html?id=${userId}`;
                 });
+            });
+            // Also make image and name clickable
+            connectionsList.querySelectorAll('img, span').forEach(el => {
+                const parent = el.closest('.list-group-item');
+                if (parent) {
+                    const userId = parent.querySelector('.view-profile-btn')?.getAttribute('data-user-id');
+                    if (userId) {
+                        el.style.cursor = 'pointer';
+                        el.addEventListener('click', () => {
+                            window.location.href = `/components/FilteredProfile/FilteredProfile.html?id=${userId}`;
+                        });
+                    }
+                }
             });
         } catch (error) {
             console.error('Error loading connections:', error);
@@ -445,6 +458,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     const userId = btn.getAttribute('data-user-id');
                     await connect(userId);
                 });
+            });
+            // Also make image and name clickable for suggested connections
+            suggestedList.querySelectorAll('img, span').forEach(el => {
+                const parent = el.closest('.list-group-item');
+                if (parent) {
+                    const userId = parent.querySelector('.connect-btn')?.getAttribute('data-user-id');
+                    if (userId) {
+                        el.style.cursor = 'pointer';
+                        el.addEventListener('click', () => {
+                            window.location.href = `/components/FilteredProfile/FilteredProfile.html?id=${userId}`;
+                        });
+                    }
+                }
             });
         } catch (error) {
             console.error('Error loading suggested connections:', error);
@@ -710,5 +736,243 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebarProfileImg.onerror = function() {
             this.src = '/static/uploads/default-profile.png';
         };
+    }
+
+    // Add search functionality
+    const searchForm = document.querySelector('form[role="search"]');
+    const searchInput = searchForm.querySelector('input[type="search"]');
+    
+    searchForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (!query) return;
+
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`/api/search/users?query=${encodeURIComponent(query)}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Search failed');
+            }
+
+            const data = await response.json();
+            
+            // Create and show search results modal
+            showSearchResults(data.data.users);
+        } catch (err) {
+            console.error('Search error:', err);
+            alert('Failed to perform search. Please try again.');
+        }
+    });
+
+    function showSearchResults(users) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('searchResultsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal
+        const modal = document.createElement('div');
+        modal.id = 'searchResultsModal';
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Search Results</h5>
+                        <button type="button" class="btn-close" onclick="this.closest('#searchResultsModal').remove()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-3">Filter Results</h6>
+                                        <form id="filterForm" class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Location</label>
+                                                <input type="text" class="form-control" id="filterLocation" placeholder="e.g., New York">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Job Title</label>
+                                                <input type="text" class="form-control" id="filterJobTitle" placeholder="e.g., Software Engineer">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">School</label>
+                                                <input type="text" class="form-control" id="filterEducation" placeholder="e.g., Harvard University">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Company</label>
+                                                <input type="text" class="form-control" id="filterExperience" placeholder="e.g., Google">
+                                            </div>
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                                                <button type="button" class="btn btn-outline-secondary ms-2" id="clearFiltersBtn">Clear Filters</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="searchResultsList">
+                            ${users.length === 0 ? 
+                                '<p class="text-center text-muted">No users found</p>' :
+                                users.map(user => `
+                                    <div class="d-flex align-items-center mb-3 p-2 border-bottom">
+                                        <img src="${user.profile_photo || '/static/uploads/default-profile.png'}" 
+                                             class="rounded-circle me-3" 
+                                             style="width: 48px; height: 48px; object-fit: cover;">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">${user.first_name} ${user.last_name}</h6>
+                                            <p class="text-muted mb-0">${user.job_title || ''}</p>
+                                            <small class="text-muted">${user.location || ''}</small>
+                                        </div>
+                                        <button class="btn btn-outline-primary btn-sm view-profile-btn" 
+                                                data-user-id="${user.id}">
+                                            View Profile
+                                        </button>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add click handlers for view profile buttons
+        modal.querySelectorAll('.view-profile-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const userId = btn.getAttribute('data-user-id');
+                window.location.href = `/components/FilteredProfile/FilteredProfile.html?id=${userId}`;
+            });
+        });
+
+        // Add filter form submission handler
+        const filterForm = modal.querySelector('#filterForm');
+        filterForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const location = document.getElementById('filterLocation').value.trim();
+            const jobTitle = document.getElementById('filterJobTitle').value.trim();
+            const education = document.getElementById('filterEducation').value.trim();
+            const experience = document.getElementById('filterExperience').value.trim();
+            const query = searchInput.value.trim();
+
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Build query string with all filters
+                const queryParams = new URLSearchParams();
+                if (query) queryParams.append('query', query);
+                if (location) queryParams.append('location', location);
+                if (jobTitle) queryParams.append('job_title', jobTitle);
+                if (education) queryParams.append('education', education);
+                if (experience) queryParams.append('experience', experience);
+
+                const response = await fetch(`/api/search/users?${queryParams.toString()}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Filter failed');
+                }
+
+                const data = await response.json();
+                updateSearchResults(data.data.users);
+            } catch (err) {
+                console.error('Filter error:', err);
+                alert('Failed to apply filters. Please try again.');
+            }
+        });
+
+        // Add clear filters button handler
+        const clearFiltersBtn = modal.querySelector('#clearFiltersBtn');
+        clearFiltersBtn.addEventListener('click', () => {
+            // Clear all filter inputs
+            document.getElementById('filterLocation').value = '';
+            document.getElementById('filterJobTitle').value = '';
+            document.getElementById('filterEducation').value = '';
+            document.getElementById('filterExperience').value = '';
+
+            // Get the original search query
+            const query = searchInput.value.trim();
+
+            // Perform a new search with only the original query
+            fetch(`/api/search/users?query=${encodeURIComponent(query)}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                updateSearchResults(data.data.users);
+            })
+            .catch(err => {
+                console.error('Search error:', err);
+                alert('Failed to clear filters. Please try again.');
+            });
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
+
+    function updateSearchResults(users) {
+        const resultsList = document.getElementById('searchResultsList');
+        if (!resultsList) return;
+
+        resultsList.innerHTML = users.length === 0 ? 
+            '<p class="text-center text-muted">No users found</p>' :
+            users.map(user => `
+                <div class="d-flex align-items-center mb-3 p-2 border-bottom">
+                    <img src="${user.profile_photo || '/static/uploads/default-profile.png'}" 
+                         class="rounded-circle me-3" 
+                         style="width: 48px; height: 48px; object-fit: cover;">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">${user.first_name} ${user.last_name}</h6>
+                        <p class="text-muted mb-0">${user.job_title || ''}</p>
+                        <small class="text-muted">${user.location || ''}</small>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm view-profile-btn" 
+                            data-user-id="${user.id}">
+                        View Profile
+                    </button>
+                </div>
+            `).join('');
+
+        // Reattach click handlers for view profile buttons
+        resultsList.querySelectorAll('.view-profile-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const userId = btn.getAttribute('data-user-id');
+                window.location.href = `/components/FilteredProfile/FilteredProfile.html?id=${userId}`;
+            });
+        });
     }
 });
