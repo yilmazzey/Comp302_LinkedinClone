@@ -35,4 +35,4 @@ htmlcov/
 .coverage
 .coverage.*
 coverage.xml
-*.cover 
+*.cover backend/instance/app.db
