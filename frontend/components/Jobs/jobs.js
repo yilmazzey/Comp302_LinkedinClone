@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const postJobBtn = document.getElementById('postJobBtn');
     if (postJobBtn) {
         postJobBtn.addEventListener('click', () => {
-            console.log('Post job button clicked'); // Debug log
             const modal = new bootstrap.Modal(document.getElementById('postJobModal'));
             modal.show();
         });
@@ -43,7 +42,10 @@ async function loadUserProfile() {
         });
         if (response.ok) {
             const user = await response.json();
-            document.getElementById('profilePicture').src = user.profile_photo || '/static/uploads/default-profile.png';
+            const profilePic = document.getElementById('profilePicture');
+            if (profilePic) {
+                profilePic.src = user.profile_photo || '/static/uploads/default-profile.png';
+            }
         }
     } catch (error) {
         console.error('Error loading user profile:', error);
@@ -51,8 +53,13 @@ async function loadUserProfile() {
 }
 
 async function loadJobs() {
-    const jobsList = document.getElementById('jobsList');
-    jobsList.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    const jobsContainer = document.getElementById('jobsContainer');
+    if (!jobsContainer) {
+        console.error('Jobs container not found');
+        return;
+    }
+
+    jobsContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
 
     try {
         const response = await fetch('/api/jobs', {
@@ -60,59 +67,59 @@ async function loadJobs() {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             }
         });
-
+        
         if (!response.ok) {
-            throw new Error('Failed to fetch jobs');
+            throw new Error('Failed to load jobs');
         }
-
+        
         const jobs = await response.json();
         
         if (jobs.length === 0) {
-            jobsList.innerHTML = '<div class="alert alert-info">No jobs found. Be the first to post a job!</div>';
+            jobsContainer.innerHTML = '<div class="alert alert-info">No jobs found. Be the first to post a job!</div>';
             return;
         }
-
-        jobsList.innerHTML = '';
+        
+        jobsContainer.innerHTML = '';
         jobs.forEach(job => {
             const jobCard = createJobCard(job);
-            jobsList.appendChild(jobCard);
+            jobsContainer.appendChild(jobCard);
         });
     } catch (error) {
         console.error('Error loading jobs:', error);
-        jobsList.innerHTML = '<div class="alert alert-danger">Failed to load jobs. Please try again later.</div>';
+        jobsContainer.innerHTML = '<div class="alert alert-danger">Failed to load jobs. Please try again later.</div>';
     }
 }
 
 function createJobCard(job) {
-    const div = document.createElement('div');
-    div.className = 'job-card';
-    div.innerHTML = `
-        <h3 class="job-title">${job.title}</h3>
-        <h4 class="company-name">${job.company_name}</h4>
-        <p class="job-location">
-            <i class="fas fa-map-marker-alt"></i> ${job.location}
-            <span class="job-type ms-2">${job.job_type}</span>
-        </p>
-        <p class="job-description">${job.description}</p>
-        <div class="d-flex justify-content-between align-items-center">
-            <small class="text-muted">Posted ${new Date(job.created_at).toLocaleDateString()}</small>
-            <button class="btn btn-outline-primary btn-sm apply-btn" data-job-id="${job.id}">
+    const card = document.createElement('div');
+    card.className = 'card mb-3';
+    card.innerHTML = `
+        <div class="card-body">
+            <h5 class="card-title">${job.title}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">${job.company_name}</h6>
+            <p class="card-text">
+                <i class="fas fa-map-marker-alt"></i> ${job.location}<br>
+                <i class="fas fa-briefcase"></i> ${job.job_type}<br>
+                <i class="fas fa-clock"></i> ${job.required_experience}
+            </p>
+            <p class="card-text">${job.description}</p>
+            <button class="btn btn-primary apply-btn" data-job-id="${job.id}">
                 Apply Now
             </button>
         </div>
     `;
 
-    // Add event listener to apply button
-    const applyBtn = div.querySelector('.apply-btn');
+    // Add click event listener to the Apply Now button
+    const applyBtn = card.querySelector('.apply-btn');
     applyBtn.addEventListener('click', () => handleApplyJob(job.id));
 
-    return div;
+    return card;
 }
 
 async function handleJobSearch(event) {
     event.preventDefault();
-    const jobsList = document.getElementById('jobsList');
-    jobsList.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    const jobsContainer = document.getElementById('jobsContainer');
+    jobsContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
 
     const title = document.getElementById('jobTitle').value;
     const location = document.getElementById('location').value;
@@ -137,18 +144,18 @@ async function handleJobSearch(event) {
         const jobs = await response.json();
         
         if (jobs.length === 0) {
-            jobsList.innerHTML = '<div class="alert alert-info">No jobs found matching your criteria.</div>';
+            jobsContainer.innerHTML = '<div class="alert alert-info">No jobs found matching your criteria.</div>';
             return;
         }
 
-        jobsList.innerHTML = '';
+        jobsContainer.innerHTML = '';
         jobs.forEach(job => {
             const jobCard = createJobCard(job);
-            jobsList.appendChild(jobCard);
+            jobsContainer.appendChild(jobCard);
         });
     } catch (error) {
         console.error('Error searching jobs:', error);
-        jobsList.innerHTML = '<div class="alert alert-danger">Failed to search jobs. Please try again later.</div>';
+        jobsContainer.innerHTML = '<div class="alert alert-danger">Failed to search jobs. Please try again later.</div>';
     }
 }
 
@@ -195,8 +202,36 @@ async function handlePostJob() {
 }
 
 async function handleApplyJob(jobId) {
-    // This is a placeholder for job application functionality
-    alert('Application functionality will be implemented soon!');
+    try {
+        const response = await fetch(`/api/jobs/${jobId}/apply`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to apply for job');
+        }
+
+        const application = await response.json();
+        
+        // Update the button to show applied status
+        const applyBtn = document.querySelector(`.apply-btn[data-job-id="${jobId}"]`);
+        if (applyBtn) {
+            applyBtn.textContent = 'Applied';
+            applyBtn.disabled = true;
+            applyBtn.classList.remove('btn-primary');
+            applyBtn.classList.add('btn-secondary');
+        }
+
+        alert('Application submitted successfully!');
+    } catch (error) {
+        console.error('Error applying for job:', error);
+        alert(error.message || 'Failed to apply for job. Please try again.');
+    }
 }
 
 function handleLogout(event) {
