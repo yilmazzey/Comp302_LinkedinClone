@@ -150,63 +150,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('No access token found');
             }
 
-            // Collect all form data
-            const formData = {
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                email: document.getElementById('email').value,
-                job_title: document.getElementById('title').value,
-                location: document.getElementById('location').value,
-                bio: document.getElementById('bio').value,
-                experience: collectExperienceData(),
-                education: collectEducationData()
-            };
-            
+            // Create a FormData object to send multipart/form-data
+            const formData = new FormData();
+            formData.append('first_name', document.getElementById('firstName').value);
+            formData.append('last_name', document.getElementById('lastName').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('job_title', document.getElementById('title').value);
+            formData.append('location', document.getElementById('location').value);
+            formData.append('bio', document.getElementById('bio').value);
+            formData.append('experience', JSON.stringify(collectExperienceData()));
+            formData.append('education', JSON.stringify(collectEducationData()));
+
             // Handle profile image
             const profileImageInput = document.getElementById('profileImage');
             if (profileImageInput && profileImageInput.files.length > 0) {
-                const imageFile = profileImageInput.files[0];
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    formData.profile_image = e.target.result;
-                    await submitForm(formData);
-                };
-                reader.readAsDataURL(imageFile);
-            } else {
-                await submitForm(formData);
+                formData.append('profile_image', profileImageInput.files[0]);
             }
-        } catch (err) {
-            console.error('Error preparing form data:', err);
-            alert('An error occurred while preparing the form data.');
-        }
-    });
 
-    async function submitForm(formData) {
-        let errorDiv = document.getElementById('profileError');
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.id = 'profileError';
-            errorDiv.className = 'alert alert-danger';
+            let errorDiv = document.getElementById('profileError');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'profileError';
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.style.display = 'none';
+                profileForm.prepend(errorDiv);
+            }
             errorDiv.style.display = 'none';
-            profileForm.prepend(errorDiv);
-        }
-        errorDiv.style.display = 'none';
-        errorDiv.textContent = '';
+            errorDiv.textContent = '';
 
-        try {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                throw new Error('No access token found');
-            }
-            
             console.log('Sending profile update request');
             const response = await fetch('/api/profile', {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData)
+                body: formData
             });
             
             console.log('Update response status:', response.status);
@@ -224,11 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Profile update error:', data);
             }
         } catch (err) {
-            errorDiv.textContent = 'An error occurred while updating your profile.';
-            errorDiv.style.display = 'block';
-            console.error('Profile update JS error:', err);
+            console.error('Error preparing form data:', err);
+            alert('An error occurred while preparing the form data.');
         }
-    }
+    });
 
     // Initial fetch
     console.log('Starting initial profile fetch');
