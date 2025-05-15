@@ -35,12 +35,26 @@ def get_users():
 def delete_user(user_id):
     try:
         user = User.query.get_or_404(user_id)
-        
         # Prevent admin from deleting themselves
         current_user_id = get_jwt_identity()
         if user.id == current_user_id:
             return jsonify({"error": "Cannot delete your own account"}), 400
-            
+        # Manually delete related records
+        from models.post import Post, Comment, PostLike
+        from models.job import Job
+        from models.user import Notification
+        # Delete posts
+        Post.query.filter_by(author_id=user.id).delete()
+        # Delete comments
+        Comment.query.filter_by(author_id=user.id).delete()
+        # Delete post likes
+        PostLike.query.filter_by(user_id=user.id).delete()
+        # Delete jobs
+        Job.query.filter_by(posted_by=user.id).delete()
+        # Delete notifications (received and sent)
+        Notification.query.filter_by(user_id=user.id).delete()
+        Notification.query.filter_by(sender_id=user.id).delete()
+        # TODO: Add other related deletions if needed (messages, applications, etc.)
         db.session.delete(user)
         db.session.commit()
         return jsonify({'message': 'User deleted successfully'})

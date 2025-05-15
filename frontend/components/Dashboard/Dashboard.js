@@ -306,18 +306,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createCommentElement(comment) {
-        const div = document.createElement('div');
-        div.className = 'comment mb-2';
-        div.innerHTML = `
-            <div class="d-flex align-items-start">
-                <div class="flex-grow-1">
-                    <strong>${comment.author_name || 'User'}</strong>
-                    <p class="mb-0">${comment.content}</p>
-                    <small class="text-muted">${new Date(comment.created_at).toLocaleString()}</small>
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const isAdmin = currentUser.is_admin === true;
+        
+        const commentElement = document.createElement('div');
+        commentElement.className = 'comment mb-2 p-2 border-bottom';
+        commentElement.id = `comment-${comment.id}`;
+        commentElement.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <strong>${comment.author_name}</strong>
+                    <p class="mb-1">${comment.content}</p>
+                    <small class="text-muted">${new Date(comment.created_at).toLocaleDateString()}</small>
                 </div>
+                ${isAdmin ? `
+                    <button class="btn btn-sm btn-danger delete-comment-btn" 
+                            onclick="deleteComment(${comment.id})" 
+                            title="Delete Comment">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                ` : ''}
             </div>
         `;
-        return div;
+        return commentElement;
     }
 
     // Initial fetch of posts
@@ -947,4 +958,45 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // 1. Make deleteComment function globally available
+    window.deleteComment = async function(commentId) {
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return;
+        }
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`/api/admin/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete comment');
+            }
+            // Remove the comment element from the DOM
+            const commentElement = document.getElementById(`comment-${commentId}`);
+            if (commentElement) {
+                // Find the comments section container
+                const commentsSection = commentElement.closest('.comments-section');
+                if (commentsSection) {
+                    // Get the post ID from the comments section ID
+                    const postId = commentsSection.id.replace('comments-', '');
+                    // Find the post's comment count element
+                    const commentsCountElement = document.querySelector(`button.comment-btn[data-post-id="${postId}"] .comments-count`);
+                    if (commentsCountElement) {
+                        const currentCount = parseInt(commentsCountElement.textContent);
+                        commentsCountElement.textContent = Math.max(0, currentCount - 1);
+                    }
+                }
+                // Remove the comment element
+                commentElement.remove();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to delete comment: ' + error.message);
+        }
+    };
 }); 
