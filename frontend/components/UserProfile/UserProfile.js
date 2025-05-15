@@ -363,14 +363,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Experience/Education (dummy handlers)
     document.getElementById('addExperienceBtn').addEventListener('click', () => {
-        alert('Add Experience functionality coming soon!');
+        window.location.href = '/components/Profile/Profile.html';
     });
     
     document.getElementById('addEducationBtn').addEventListener('click', () => {
-        alert('Add Education functionality coming soon!');
+        window.location.href = '/components/Profile/Profile.html';
     });
     
     document.getElementById('editPhotoBtn').addEventListener('click', () => {
-        alert('Change Profile Photo functionality coming soon!');
+        window.location.href = '/components/Profile/Profile.html';
     });
 }); 

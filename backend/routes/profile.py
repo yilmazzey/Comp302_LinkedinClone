@@ -39,7 +39,11 @@ def update_profile():
         if not user:
             return jsonify({'message': 'User not found'}), 404
             
-        data = request.form.to_dict()
+
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
         
         # Handle profile image upload
         if 'profile_image' in request.files:

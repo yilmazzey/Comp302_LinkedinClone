@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, current_app
 from models.user import User, db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from utils.admin_utils import admin_required
+from models.post import Comment
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -47,3 +48,14 @@ def delete_user(user_id):
         db.session.rollback()
         current_app.logger.error(f"Error deleting user: {str(e)}")
         return jsonify({"error": "Failed to delete user"}), 500
+
+@admin_bp.route('/comments/<int:comment_id>', methods=['DELETE'])
+def delete_comment(comment_id):
+    try:
+        comment = Comment.query.get_or_404(comment_id)
+        db.session.delete(comment)
+        db.session.commit()
+        return jsonify({'message': 'Comment deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
